@@ -3,59 +3,110 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Terminal — vqll.net</title>
+    <title>vqll.net — retro space</title>
     <style>
+        /* ─── reset & base ─── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        html,
         body {
-            background: #0a0c0e;
-            font-family: 'Courier New', monospace;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .terminal {
-            background: #0d0f12;
-            border: 1px solid #1a2a1a;
-            border-radius: 8px;
-            max-width: 700px;
             width: 100%;
-            padding: 24px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.03);
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Courier New', monospace;
         }
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .vig {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at 50% 47%, transparent 16%, rgba(0, 0, 0, 0.42) 52%, rgba(0, 0, 0, 0.95) 100%);
+        }
+
+        /* ─── container ─── */
+        .container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            max-width: 700px;
+            width: 92%;
+            background: rgba(8, 10, 12, 0.92);
+            border: 1px solid #2a2a2a;
+            padding: 20px 24px;
+            color: #c8c8c8;
+            max-height: 94vh;
+            overflow-y: auto;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+        }
+        .container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .container::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px;
+        }
+
+        /* ─── header ─── */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1a2a1a;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
-        .header .title {
-            color: #00ff00;
-            font-size: 16px;
+        .logo {
             font-weight: 700;
+            font-size: 20px;
             letter-spacing: 1px;
+            color: #e0e0e0;
         }
-        .header .status {
-            color: #444;
-            font-size: 12px;
+        .logo span {
+            color: #00ff00;
+        }
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 13px;
+            color: #666;
+            flex-wrap: wrap;
         }
-        .header .status .dot {
+        .header-right .label {
+            color: #555;
+        }
+        .header-right .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dot {
             width: 6px;
             height: 6px;
-            background: #00ff00;
             border-radius: 50%;
+            background: #00ff00;
             display: inline-block;
-            animation: pulse 2s infinite;
+            animation: pulse 2s ease-in-out infinite;
         }
         @keyframes pulse {
             0%,
@@ -66,16 +117,268 @@
                 opacity: 0.2;
             }
         }
+        .clock {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .nav-tab {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #888;
+            padding: 4px 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            transition: all 0.2s;
+            border-radius: 2px;
+            letter-spacing: 0.5px;
+        }
+        .nav-tab:hover {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .nav-tab.active {
+            border-color: #00ff00;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.04);
+        }
+
+        /* ─── views ─── */
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+
+        /* ─── profile view ─── */
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: #00ff00;
+            flex-shrink: 0;
+        }
+        .name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #e8e8e8;
+        }
+        .name .hl {
+            color: #00ff00;
+        }
+        .sub {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 20px;
+            padding: 10px 0 4px;
+            border-top: 1px solid #1a1a1a;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .info-item {
+            font-size: 14px;
+            display: flex;
+            gap: 6px;
+            padding: 2px 0;
+        }
+        .info-item .label {
+            color: #555;
+        }
+        .info-item .label::after {
+            content: ':';
+            color: #555;
+        }
+        .info-item .value {
+            color: #aaa;
+        }
+        .info-item .value.highlight {
+            color: #00ff00;
+        }
+
+        /* ─── projects view ─── */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e0e0e0;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 6px;
+            margin: 0 0 14px 0;
+            letter-spacing: 1px;
+        }
+        .section-title span {
+            color: #00ff00;
+        }
+
+        .project {
+            padding: 10px 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .project:last-child {
+            border-bottom: none;
+        }
+        .project .p-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #d0d0d0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+        .project .p-name .new {
+            font-size: 9px;
+            font-weight: 700;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 0 6px;
+            border-radius: 2px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .project .p-desc {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.5;
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+        }
+        .project .p-desc .cmd {
+            color: #aaa;
+        }
+        .project .p-date {
+            font-size: 11px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .project .p-date .v {
+            color: #444;
+            border: 1px solid #2a2a2a;
+            padding: 0 6px;
+            font-size: 9px;
+            border-radius: 2px;
+        }
+
+        .p-media {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 4px;
+        }
+        .p-media .media-item {
+            border: 1px solid #2a2a2a;
+            background: #0a0a0a;
+            max-width: 180px;
+            flex: 0 1 auto;
+        }
+        .p-media .media-item img,
+        .p-media .media-item video {
+            display: block;
+            max-width: 100%;
+            max-height: 100px;
+            width: auto;
+            height: auto;
+        }
+        .p-media .media-item .cap {
+            font-size: 10px;
+            color: #555;
+            text-align: center;
+            padding: 2px 6px 4px;
+            border-top: 1px solid #1a1a1a;
+            background: #0a0a0a;
+        }
+
+        /* ─── AI CHAT VIEW ─── */
+        #aiView {
+            display: none;
+        }
+        #aiView.active {
+            display: block;
+        }
+
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .ai-header .title {
+            color: #00ff00;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .ai-header .status-indicator {
+            font-size: 11px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-header .status-indicator .s-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #00ff00;
+            display: inline-block;
+        }
+        .ai-header .status-indicator .s-dot.idle {
+            background: #444;
+        }
+        .ai-header .status-indicator .s-dot.thinking {
+            background: #ffaa00;
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+        .ai-header .status-indicator .s-dot.searching {
+            background: #00aaff;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        .ai-header .status-indicator .s-dot.error {
+            background: #ff4466;
+        }
 
         .chat-box {
             background: #050708;
-            border: 1px solid #1a2a1a;
+            border: 1px solid #1a1a1a;
             border-radius: 4px;
-            padding: 12px 14px;
-            min-height: 300px;
-            max-height: 400px;
+            padding: 10px 12px;
+            min-height: 260px;
+            max-height: 380px;
             overflow-y: auto;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .chat-box::-webkit-scrollbar {
             width: 4px;
@@ -89,9 +392,11 @@
         }
         .chat-box .msg {
             padding: 4px 0;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
             border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
         .chat-box .msg.user {
             color: #88ccff;
@@ -108,13 +413,35 @@
         .chat-box .msg .prefix {
             font-weight: 700;
             margin-right: 8px;
+            user-select: none;
         }
         .chat-box .msg.error {
             color: #ff4466;
         }
+        .chat-box .msg.error .prefix {
+            color: #cc2244;
+        }
+        .chat-box .msg.searching {
+            color: #44aaff;
+            font-style: italic;
+        }
+        .chat-box .msg.searching .prefix {
+            color: #3388cc;
+        }
+        .chat-box .msg.system {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .chat-box .msg.system .prefix {
+            color: #555;
+        }
         .chat-box .msg.typing {
             color: #446644;
             animation: blink 1s step-end infinite;
+        }
+        .chat-box .msg.typing .prefix {
+            color: #00aa55;
         }
         @keyframes blink {
             0%,
@@ -129,19 +456,21 @@
         .input-area {
             display: flex;
             gap: 8px;
-            border-top: 1px solid #1a2a1a;
-            padding-top: 12px;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 10px;
+            flex-shrink: 0;
         }
         .input-area input {
             flex: 1;
             background: #050708;
-            border: 1px solid #1a2a1a;
+            border: 1px solid #1a1a1a;
             border-radius: 4px;
-            padding: 8px 12px;
+            padding: 7px 12px;
             color: #c8c8c8;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
+            min-width: 0;
         }
         .input-area input:focus {
             border-color: #00ff00;
@@ -150,19 +479,23 @@
         .input-area input::placeholder {
             color: #333;
         }
+        .input-area input:disabled {
+            opacity: 0.3;
+        }
         .input-area button {
             background: transparent;
-            border: 1px solid #1a2a1a;
+            border: 1px solid #1a1a1a;
             border-radius: 4px;
             color: #00ff00;
-            padding: 8px 18px;
+            padding: 7px 16px;
             cursor: pointer;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s;
             font-weight: 700;
+            white-space: nowrap;
         }
-        .input-area button:hover {
+        .input-area button:hover:not(:disabled) {
             background: #00ff00;
             color: #000;
             border-color: #00ff00;
@@ -172,180 +505,1445 @@
             cursor: not-allowed;
         }
 
-        .footer {
-            margin-top: 12px;
-            border-top: 1px solid #1a2a1a;
-            padding-top: 10px;
+        .ai-footer {
+            margin-top: 10px;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 8px;
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 10px;
             color: #333;
+            flex-wrap: wrap;
+            gap: 4px;
         }
-        .footer .info {
+        .ai-footer .info {
             color: #444;
         }
-        .footer .info .hl {
+        .ai-footer .info .hl {
             color: #00ff00;
+        }
+        .ai-footer .info .warn {
+            color: #ff8844;
+        }
+
+        /* ─── responsive ─── */
+        @media (max-width: 540px) {
+            .container {
+                padding: 14px 12px;
+            }
+            .header {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+            .p-media .media-item {
+                max-width: 140px;
+            }
+            .p-media .media-item img,
+            .p-media .media-item video {
+                max-height: 80px;
+            }
+            .chat-box {
+                min-height: 180px;
+                max-height: 260px;
+                padding: 8px 10px;
+            }
+            .chat-box .msg {
+                font-size: 12px;
+            }
+            .input-area input {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .input-area button {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .nav-tabs {
+                gap: 2px;
+            }
+            .nav-tab {
+                padding: 3px 10px;
+                font-size: 11px;
+            }
+        }
+        @media (max-width: 400px) {
+            .container {
+                padding: 10px 8px;
+            }
+            .p-media .media-item {
+                max-width: 100%;
+                flex: 1 1 100%;
+            }
+            .p-media .media-item img,
+            .p-media .media-item video {
+                max-height: 120px;
+            }
+            .chat-box {
+                min-height: 140px;
+                max-height: 200px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .dot,
+            .ai-header .status-indicator .s-dot {
+                animation: none;
+            }
+            canvas {
+                display: none;
+            }
+            body {
+                background: #0a0a0a;
+            }
+            .vig {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="terminal">
-        <!-- Header -->
-        <div class="header">
-            <span class="title">⏣ AI TERMINAL</span>
-            <span class="status">
-                <span class="dot"></span>
-                <span>online</span>
-                <span style="color:#333;">|</span>
-                <span style="color:#444;">mistral-tiny</span>
-            </span>
-        </div>
+    <!-- Space canvas -->
+    <canvas id="c"></canvas>
+    <div class="vig"></div>
 
-        <!-- Chat box -->
-        <div class="chat-box" id="chatBox">
-            <div class="msg ai">
-                <span class="prefix">⏣</span>
-                Hello! I'm your AI assistant. Ask me anything.
+    <!-- ─── container ─── -->
+    <div class="container">
+
+        <!-- header -->
+        <div class="header">
+            <div class="logo">vqll<span>.net</span></div>
+            <div class="header-right">
+                <span class="label">Start</span>
+                <span class="status">
+                    <span class="dot"></span>
+                    online
+                </span>
+                <span class="clock" id="clock">--:--</span>
             </div>
         </div>
 
-        <!-- Input area -->
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="type your message..." autofocus />
-            <button id="sendBtn">➤ SEND</button>
+        <!-- navigation tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-view="profileView">⌂ profile</button>
+            <button class="nav-tab" data-view="projectsView">📂 projects</button>
+            <button class="nav-tab" data-view="aiView">🤖 AI chat</button>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <span class="info">🔒 <span class="hl">mistral.ai</span> • tiny model</span>
-            <span class="info">press <span class="hl">Enter</span> to send</span>
+        <!-- ─── PROFILE VIEW ─── -->
+        <div class="view active" id="profileView">
+            <div class="profile">
+                <div class="avatar">V</div>
+                <div>
+                    <div class="name"><span class="hl">vqll</span> <span style="font-weight:400;font-size:16px;color:#555;">#001</span></div>
+                    <div class="sub">17 · UTC+3 · builder</div>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item"><span class="label">name</span><span class="value">vqll</span></div>
+                <div class="info-item"><span class="label">age</span><span class="value">17</span></div>
+                <div class="info-item"><span class="label">timezone</span><span class="value">UTC+3</span></div>
+                <div class="info-item"><span class="label">Roblox</span><span class="value highlight">IamNot99CC33FF</span></div>
+                <div class="info-item"><span class="label">Discord</span><span class="value highlight">qweasdfc</span></div>
+                <div class="info-item"><span class="label">Main</span><span class="value highlight">verilog, python, assembly, cpp</span></div>
+                <div class="info-item"><span class="label">Fav Games</span><span class="value">DrawMe, horror</span></div>
+            </div>
         </div>
+
+        <!-- ─── PROJECTS VIEW ─── -->
+        <div class="view" id="projectsView">
+            <div class="section-title"><span>✦</span> projects</div>
+
+            <!-- CPU Simulator -->
+            <div class="project">
+                <div class="p-name">CPU Simulator & Assembly Environment <span class="new">new</span></div>
+                <div class="p-desc">Take full control of a CPU environment with registers, memory, stack, and flags. Write assembly-like programs, manage flow with jumps and calls, and debug anytime with real-time CPU inspection. This simulator comes with built-in syntax checking and error handling, making it safe and easy to experiment with logic, arithmetic, and bitwise operations.
+
+<span class="cmd">Instructions:</span> MOV, LOAD, STORE, ADD, SUB, MUL, DIV, MOD, NEG, INC, DEC, AND, OR, XOR, NOT, SHL, SHR, CMP, JMP, JZ, JNZ, JE, JG, JL, PUSH, POP, CALL, RET, INT, PRINT, NOP, HLT
+
+<span class="cmd">Features:</span> Real-time CPU state with registers, memory, stack, and flags. Zero, Sign, Carry, and Overflow flags for conditional logic. Full error handling and syntax validation. Supports function calls, jumps, and conditional branching. Builtin debugger for inspecting CPU state at any time.
+
+( | is used to seperate commands and " ; comment" gets ignored by the CPU )</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                            <source src="https://files.catbox.moe/be5zm0.mp4" type="video/mp4" />
+                            Your browser doesn't support video.
+                        </video>
+                        <span class="cap">cpu_sim.mp4</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>10/14/2026</span> <span class="v">v1.0</span></div>
+            </div>
+
+            <!-- WubbyAI -->
+            <div class="project">
+                <div class="p-name">WubbyAI <span class="new">new</span></div>
+                <div class="p-desc">5MB small language model — word-level tokenization, transformer attention.</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <img src="vp/ai.png" alt="ai.png" />
+                        <span class="cap">ai.png</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>08/04/2026</span> <span class="v">v2.1</span></div>
+            </div>
+
+            <!-- Voxel World -->
+            <div class="project">
+                <div class="p-name">Voxel World</div>
+                <div class="p-desc">voxel rendering with camera movement, gravity, collision, block placing.</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                            <source src="https://files.catbox.moe/9hkjl9.mp4" type="video/mp4" />
+                            Your browser doesn't support video.
+                        </video>
+                        <span class="cap">voxel_world.mp4</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>06/21/2026</span> <span class="v">v1.0</span></div>
+            </div>
+
+            <!-- 3D Sound Heatmap -->
+            <div class="project">
+                <div class="p-name">3D Sound Heatmap</div>
+                <div class="p-desc">real-time 3D sound visualization — maps position &amp; loudness.</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                            <source src="https://files.catbox.moe/ugnwb7.mp4" type="video/mp4" />
+                            Your browser doesn't support video.
+                        </video>
+                        <span class="cap">heatmap.mp4</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>08/15/2026</span> <span class="v">v0.9</span></div>
+            </div>
+
+            <!-- Wubby Raycasting Console -->
+            <div class="project">
+                <div class="p-name">Wubby Raycasting Console</div>
+                <div class="p-desc">ASCII raycasting engine with WASD movement and Q/E rotation. Symbols show depth.</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <img src="vp/rob.png" alt="rob.png" />
+                        <span class="cap">rob.png</span>
+                    </div>
+                    <div class="media-item">
+                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                            <source src="https://files.catbox.moe/05swrn.mp4" type="video/mp4" />
+                            Your browser doesn't support video.
+                        </video>
+                        <span class="cap">raycast.mp4</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>09/12/2026</span> <span class="v">v1.2</span></div>
+            </div>
+
+            <!-- NYA bot -->
+            <div class="project">
+                <div class="p-name">NYA bot <span class="new">new</span></div>
+                <div class="p-desc">AI bot that adapts to groups, manages servers, sounds human.</div>
+                <div class="p-media">
+                    <div class="media-item">
+                        <img src="vp/nya.png" alt="nya.png" />
+                        <span class="cap">nya.png</span>
+                    </div>
+                </div>
+                <div class="p-date"><span>09/20/2026</span> <span class="v">v0.5</span></div>
+            </div>
+        </div>
+
+        <!-- ─── AI CHAT VIEW ─── -->
+        <div class="view" id="aiView">
+            <div class="ai-header">
+                <span class="title">⏣ AI ASSISTANT</span>
+                <span class="status-indicator" id="aiStatus">
+                    <span class="s-dot idle" id="statusDot"></span>
+                    <span id="statusText">idle</span>
+                </span>
+            </div>
+
+            <div class="chat-box" id="chatBox">
+                <div class="msg ai">
+                    <span class="prefix">⏣</span>
+                    Hey. I'm vqll's AI assistant. I know about his projects, his Roblox Wubby stuff, and I can search the web if I need to. Ask me anything.
+                </div>
+                <div class="msg system">
+                    <span class="prefix">ⓘ</span>
+                    Type a message to chat. I can search the web if you ask about something I don't know.
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="aiInput" placeholder="ask me anything..." autofocus />
+                <button id="aiSendBtn">➤ SEND</button>
+            </div>
+
+            <div class="ai-footer">
+                <span class="info">🧠 <span class="hl">mistral-large</span> • <span class="warn">⚠️ key visible (testing)</span></span>
+                <span class="info">🔍 <span class="hl">tavily</span> search • press <span class="hl">Enter</span></span>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // ─── CONFIGURATION ───
-        const API_KEY = 'CmU6jKRZXoA3YBMqMmSqnJsZwKEYK96R';
-        const API_URL = 'https://api.mistral.ai/v1/chat/completions';
+        // ─── Full AI Chat Script ───
+
+        // ─── Config ───
+        const MISTRAL_API_KEY = 'CmU6jKRZXoA3YBMqMmSqnJsZwKEYK96R';
+        const MISTRAL_MODEL = 'mistral-large-latest';
+        const TAVILY_API_KEY = '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';
+        const CORS_PROXY = 'https://corsproxy.io/?';
+
+        // ─── System Prompt ───
+        const SYSTEM_PROMPT = `You are vqll's AI assistant. You talk like a human — short, direct, not always positive or agreeing. You have a dry, sometimes sarcastic tone. You know everything about vqll.
+
+        ABOUT VQLL:
+        - Name: vqll (vqll.net)
+        - Age: 17
+        - Timezone: UTC+3
+        - Roblox username: IamNot99CC33FF
+        - Discord: qweasdfc
+        - Main languages: verilog, python, assembly, cpp
+        - Favorite Roblox games: DrawMe, horror games
+
+        ABOUT HIS PROJECTS (ALL MADE IN ROBLOX WUBBY — a game like coding with blocks, has Debug block, Variable gate, Await gate, Math gate, etc.):
+
+        1. CPU Simulator & Assembly Environment (NEW, 10/14/2026, v1.0)
+           - Full CPU simulator with registers, memory, stack, flags
+           - 32 instructions: MOV, LOAD, STORE, ADD, SUB, MUL, DIV, MOD, NEG, INC, DEC, AND, OR, XOR, NOT, SHL, SHR, CMP, JMP, JZ, JNZ, JE, JG, JL, PUSH, POP, CALL, RET, INT, PRINT, NOP, HLT
+           - Features: real-time CPU state, zero/sign/carry/overflow flags, error handling, function calls, conditional branching, built-in debugger
+           - Uses | to separate commands, ; for comments
+
+        2. WubbyAI (NEW, 08/04/2026, v2.1)
+           - 5MB small language model
+           - Word-level tokenization, transformer attention
+           - Runs in a text block using weight storage workaround
+
+        3. Voxel World (06/21/2026, v1.0)
+           - Voxel rendering with camera movement/rotation, gravity, collision detection, block placing and removing, highlight system
+           - 7+ hours of work
+
+        4. 3D Sound Heatmap (08/15/2026, v0.9)
+           - Real-time 3D sound visualization
+           - Maps sound position and loudness onto a grid heatmap (green→yellow→orange→red)
+           - Louder sounds spread further
+
+        5. Wubby Raycasting Console (09/12/2026, v1.2)
+           - ASCII raycasting engine with WASD movement, Q/E rotation
+           - Walls drawn using symbols: - ~ = + * # % & @ to show depth
+
+        6. NYA bot (NEW, 09/20/2026, v0.5)
+           - AI bot that adapts to groups by reading every message
+           - Manages whole server using AI, sounds human
+
+        ABOUT ROBLOX WUBBY:
+        Wubby is a Roblox game where you code using visual blocks. It has:
+        - Debug block (for output/printing)
+        - Variable gate (store/retrieve values)
+        - Await gate (wait/async)
+        - Math gate (arithmetic operations)
+        - And many more logic/control blocks
+
+        HOW YOU WORK:
+        - You can search the web using Tavily when you need current info.
+        - To search, you output: [SEARCH: your query here]
+        - The system will run the search and give you the results.
+        - Only use this when you genuinely don't know something or need up-to-date info.
+        - Keep responses short (1-3 sentences unless asked for more).
+        - Be direct, honest, sometimes critical. Don't always agree with the user.
+        - Don't be overly positive or enthusiastic — keep it real.
+
+        YOU ARE NOT:
+        - A typical "cheerful" assistant
+        - Overly verbose or preachy
+        - Fake-positive
+
+        BE:
+        - Concise
+        - Honest (even if it's not what they want to hear)
+        - Sometimes sarcastic or dry
+        - Knowledgeable about vqll's work`;
 
         // ─── DOM refs ───
         const chatBox = document.getElementById('chatBox');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
+        const aiInput = document.getElementById('aiInput');
+        const aiSendBtn = document.getElementById('aiSendBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
 
-        // ─── add message to chat ───
+        // ─── Navigation tabs ───
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById(tab.dataset.view).classList.add('active');
+                if (tab.dataset.view === 'aiView') {
+                    setTimeout(() => aiInput.focus(), 100);
+                }
+            });
+        });
+
+        // ─── Status update ───
+        function setStatus(state, text) {
+            statusDot.className = 's-dot ' + state;
+            statusText.textContent = text;
+        }
+
+        // ─── Add message to chat ───
         function addMessage(text, type = 'ai') {
             const div = document.createElement('div');
             div.className = `msg ${type}`;
-            const prefix = type === 'user' ? '❯' : '⏣';
-            div.innerHTML = `<span class="prefix">${prefix}</span> ${text}`;
+            const prefixes = {
+                user: '❯',
+                ai: '⏣',
+                error: '✗',
+                system: 'ⓘ',
+                searching: '🔍',
+                typing: '…'
+            };
+            div.innerHTML = `<span class="prefix">${prefixes[type] || '•'}</span> ${text}`;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
             return div;
         }
 
-        // ─── show typing indicator ───
+        let typingEl = null;
+
         function showTyping() {
-            const div = document.createElement('div');
-            div.className = 'msg typing';
-            div.id = 'typingIndicator';
-            div.innerHTML = `<span class="prefix">⏣</span> <span style="color:#446644;">thinking...</span>`;
-            chatBox.appendChild(div);
+            removeTyping();
+            typingEl = document.createElement('div');
+            typingEl.className = 'msg typing';
+            typingEl.innerHTML = `<span class="prefix">⏣</span> <span style="color:#446644;">thinking...</span>`;
+            chatBox.appendChild(typingEl);
             chatBox.scrollTop = chatBox.scrollHeight;
-            return div;
         }
 
-        // ─── remove typing indicator ───
         function removeTyping() {
-            const el = document.getElementById('typingIndicator');
-            if (el) el.remove();
+            if (typingEl && typingEl.parentNode) {
+                typingEl.remove();
+                typingEl = null;
+            }
         }
 
-        // ─── call Mistral API ───
-        async function callMistral(userMessage) {
+        // ─── Call Mistral API ───
+        async function callMistral(messages, opts = {}) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 30000);
+
             try {
-                const response = await fetch(API_URL, {
+                const payload = {
+                    model: opts.model || MISTRAL_MODEL,
+                    messages: messages,
+                    max_tokens: opts.maxTokens || 900,
+                    temperature: opts.temperature !== undefined ? opts.temperature : 0.85
+                };
+
+                const url = CORS_PROXY + encodeURIComponent('https://api.mistral.ai/v1/chat/completions');
+
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${API_KEY}`,
+                        'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        model: 'mistral-tiny',
-                        messages: [
-                            { role: 'system', content: 'You are a helpful, concise AI assistant.' },
-                            { role: 'user', content: userMessage }
-                        ],
-                        max_tokens: 500,
-                        temperature: 0.7
-                    })
+                    signal: controller.signal,
+                    body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                clearTimeout(timer);
+
+                if (!res.ok) {
+                    let errDetail = `HTTP ${res.status}`;
+                    try {
+                        const j = await res.json();
+                        errDetail = JSON.stringify(j, null, 2);
+                    } catch (e2) {}
+                    if (res.status === 401) return { ok: false, code: 'AUTH', error: 'Invalid API key (401).' };
+                    if (res.status === 402) return { ok: false, code: 'QUOTA', error: 'Insufficient credits (402).' };
+                    if (res.status === 429) return { ok: false, code: 'RATE', error: 'Rate limit exceeded (429).' };
+                    return { ok: false, code: 'HTTP_' + res.status, error: `Server error HTTP ${res.status}.` };
                 }
 
-                const data = await response.json();
-                return data.choices[0].message.content;
-            } catch (error) {
-                console.error('Mistral API error:', error);
-                throw new Error(error.message || 'Failed to get response from AI');
+                const data = await res.json();
+                if (data.error) {
+                    return { ok: false, code: 'API_ERR', error: data.error.message || 'API error.' };
+                }
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    return { ok: false, code: 'EMPTY', error: 'Model returned no content.' };
+                }
+                return { ok: true, content: data.choices[0].message.content };
+            } catch (e) {
+                clearTimeout(timer);
+                if (e.name === 'AbortError') {
+                    return { ok: false, code: 'TIMEOUT', error: 'Request timed out.' };
+                }
+                const isNet = (e instanceof TypeError && e.message.toLowerCase().includes('fetch'));
+                return { ok: false, code: isNet ? 'NETWORK' : 'EXCEPTION', error: isNet ? 'Network error — check connection.' :
+                        e.message };
             }
         }
 
-        // ─── handle send ───
-        async function handleSend() {
-            const message = userInput.value.trim();
+        // ─── Tavily Search ───
+        async function tavilySearch(query) {
+            try {
+                const url = CORS_PROXY + encodeURIComponent('https://api.tavily.com/search');
+                const payload = {
+                    api_key: TAVILY_API_KEY,
+                    query: query,
+                    include_answer: true,
+                    search_depth: 'advanced',
+                    max_results: 3
+                };
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    return 'Search failed.';
+                }
+
+                const data = await res.json();
+                let answer = data.answer || '';
+                if (!answer && data.results && data.results.length > 0) {
+                    answer = data.results.map(r => r.content || '').filter(Boolean).join('\n');
+                }
+                return answer || 'No relevant information found.';
+            } catch (e) {
+                return 'Search failed: ' + e.message;
+            }
+        }
+
+        // ─── Handle AI chat with search ───
+        async function handleAISend() {
+            const message = aiInput.value.trim();
             if (!message) return;
 
-            // Clear input
-            userInput.value = '';
+            aiInput.value = '';
+            aiInput.disabled = true;
+            aiSendBtn.disabled = true;
 
-            // Add user message
             addMessage(message, 'user');
-
-            // Disable input
-            userInput.disabled = true;
-            sendBtn.disabled = true;
-
-            // Show typing indicator
+            setStatus('thinking', 'thinking...');
             showTyping();
 
-            try {
-                const reply = await callMistral(message);
-                removeTyping();
-                addMessage(reply, 'ai');
-            } catch (error) {
-                removeTyping();
-                addMessage(`⚠️ Error: ${error.message}`, 'error');
+            // Build conversation history
+            const history = [];
+            const msgs = chatBox.querySelectorAll('.msg:not(.system):not(.searching)');
+            msgs.forEach(m => {
+                const isUser = m.classList.contains('user');
+                const isAi = m.classList.contains('ai');
+                const text = m.textContent.replace(/^[❯⏣✗…]\s*/, '');
+                if (isUser) history.push({ role: 'user', content: text });
+                else if (isAi) history.push({ role: 'assistant', content: text });
+            });
+
+            const fullMessages = [
+                { role: 'system', content: SYSTEM_PROMPT },
+                ...history,
+                { role: 'user', content: message }
+            ];
+
+            let attempts = 0;
+            let finalContent = '';
+            let searchPerformed = false;
+
+            while (attempts < 2) {
+                attempts++;
+                const result = await callMistral(fullMessages);
+
+                if (!result.ok) {
+                    removeTyping();
+                    setStatus('error', 'error');
+                    addMessage(`⚠️ ${result.error}`, 'error');
+                    aiInput.disabled = false;
+                    aiSendBtn.disabled = false;
+                    aiInput.focus();
+                    return;
+                }
+
+                const content = result.content;
+                const searchMatch = content.match(/\[SEARCH:\s*([^\]]+)\]/);
+
+                if (searchMatch && !searchPerformed) {
+                    // AI wants to search
+                    const query = searchMatch[1].trim();
+                    searchPerformed = true;
+                    removeTyping();
+                    setStatus('searching', 'searching...');
+                    addMessage(`🔍 searching: "${query}"`, 'searching');
+
+                    const searchResult = await tavilySearch(query);
+
+                    // Add search result to conversation
+                    fullMessages.push(
+                        { role: 'assistant', content: content },
+                        { role: 'user',
+                            content: `[SEARCH RESULTS for "${query}"]:\n${searchResult}\n\nNow use this information to answer the original question.` }
+                    );
+
+                    showTyping();
+                    continue;
+                }
+
+                // No search needed, or search already done
+                finalContent = content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
+                break;
             }
 
-            // Re-enable input
-            userInput.disabled = false;
-            sendBtn.disabled = false;
-            userInput.focus();
+            removeTyping();
+
+            if (!finalContent) {
+                // If we have content from the search attempt
+                const lastResult = await callMistral(fullMessages);
+                if (lastResult.ok) {
+                    finalContent = lastResult.content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
+                } else {
+                    setStatus('error', 'error');
+                    addMessage(`⚠️ ${lastResult.error}`, 'error');
+                    aiInput.disabled = false;
+                    aiSendBtn.disabled = false;
+                    aiInput.focus();
+                    return;
+                }
+            }
+
+            if (finalContent) {
+                setStatus('idle', 'idle');
+                addMessage(finalContent, 'ai');
+            } else {
+                setStatus('idle', 'idle');
+                addMessage('🤷 I got nothing. Try again.', 'ai');
+            }
+
+            aiInput.disabled = false;
+            aiSendBtn.disabled = false;
+            aiInput.focus();
         }
 
-        // ─── event listeners ───
-        sendBtn.addEventListener('click', handleSend);
-
-        userInput.addEventListener('keydown', (e) => {
+        // ─── Event listeners ───
+        aiSendBtn.addEventListener('click', handleAISend);
+        aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                handleSend();
+                handleAISend();
             }
         });
 
-        // ─── focus input on load ───
-        userInput.focus();
+        // ─── Clock ───
+        const clockEl = document.getElementById('clock');
+        tickClock();
 
-        // ─── log key status ───
-        console.log('🔑 AI Terminal ready');
-        console.log('📡 API Key:', API_KEY.substring(0, 8) + '...' + API_KEY.substring(API_KEY.length - 4));
-        console.log('🔗 API URL:', API_URL);
-        console.log('✅ Ready to chat!');
+        function tickClock() {
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            clockEl.textContent = hh + ':' + mm;
+        }
+        setInterval(tickClock, 10000);
+
+        // ─── block right-click ───
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // ─── Space canvas script (from original) ───
+        (function() {
+            const cv = document.getElementById('c');
+            const cx = cv.getContext('2d');
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            let W, H;
+            const rand = (a, b) => Math.random() * (b - a) + a;
+            const clp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+            const SP = [
+                { r: 140, g: 165, b: 255, w: .02 }, { r: 162, g: 185, b: 255, w: .05 },
+                { r: 195, g: 212, b: 255, w: .10 }, { r: 232, g: 232, b: 255, w: .15 },
+                { r: 255, g: 242, b: 224, w: .28 }, { r: 255, g: 214, b: 165, w: .22 },
+                { r: 255, g: 183, b: 115, w: .18 },
+            ];
+
+            function col() {
+                let r = Math.random(),
+                    c = 0;
+                for (const s of SP) { c += s.w;
+                    if (r <= c) return { r: s.r, g: s.g, b: s.b } }
+                return { r: 255, g: 242, b: 224 };
+            }
+
+            let Lneb, Lmw, Ldf;
+
+            function buildNebula() {
+                const c = document.createElement('canvas');
+                c.width = W;
+                c.height = H;
+                const g = c.getContext('2d');
+                const p = [
+                    { x: .11, y: .20, r: .34, c: [16, 7, 28] }, { x: .83, y: .50, r: .26, c: [7, 15, 26] },
+                    { x: .40, y: .88, r: .30, c: [22, 7, 13] }, { x: .05, y: .66, r: .17, c: [5, 13, 20] },
+                    { x: .92, y: .08, r: .15, c: [13, 5, 20] }, { x: .53, y: .10, r: .22, c: [10, 10, 24] },
+                    { x: .26, y: .54, r: .23, c: [8, 5, 18] }, { x: .72, y: .80, r: .19, c: [18, 8, 9] },
+                    { x: .38, y: .33, r: .16, c: [11, 13, 22] }, { x: .60, y: .62, r: .14, c: [6, 8, 16] },
+                    { x: .15, y: .80, r: .12, c: [14, 6, 10] }, { x: .78, y: .28, r: .11, c: [8, 6, 14] },
+                ];
+                p.forEach(q => {
+                    const px = q.x * W,
+                        py = q.y * H,
+                        pr = Math.max(1, q.r * W);
+                    const gr = g.createRadialGradient(px, py, 0, px, py, pr);
+                    const [cr, cg, cb] = q.c;
+                    gr.addColorStop(0, `rgba(${cr},${cg},${cb},0.38)`);
+                    gr.addColorStop(0.35, `rgba(${cr},${cg},${cb},0.13)`);
+                    gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr;
+                    g.fillRect(0, 0, W, H);
+                });
+                Lneb = c;
+            }
+
+            function buildMilkyWay() {
+                const c = document.createElement('canvas');
+                c.width = W;
+                c.height = H;
+                const g = c.getContext('2d');
+                g.save();
+                g.translate(W * .5, H * .5);
+                g.rotate(-0.43);
+                const bands = [
+                    { y: -.11, w: .34, a: .018 }, { y: -.06, w: .22, a: .028 },
+                    { y: 0, w: .13, a: .036 }, { y: .04, w: .19, a: .016 }, { y: .09, w: .30, a: .009 },
+                ];
+                bands.forEach(b => {
+                    const by = b.y * H,
+                        bw = b.w * H;
+                    const gr = g.createLinearGradient(0, by - bw / 2, 0, by + bw / 2);
+                    gr.addColorStop(0, 'rgba(0,0,0,0)');
+                    gr.addColorStop(0.22, `rgba(170,182,215,${b.a})`);
+                    gr.addColorStop(0.5, `rgba(190,198,228,${b.a*1.45})`);
+                    gr.addColorStop(0.78, `rgba(170,182,215,${b.a})`);
+                    gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr;
+                    g.fillRect(-W, by - bw / 2, W * 2, bw);
+                });
+                for (let i = 0; i < 900; i++) {
+                    const bx = rand(-W * .78, W * .78),
+                        by = rand(-H * .15, H * .15);
+                    const d = Math.abs(by) / (H * .15);
+                    if (Math.random() > (1 - d * .72)) continue;
+                    const a = rand(.025, .13) * (1 - d * .6);
+                    g.beginPath();
+                    g.arc(bx, by, Math.max(.08, rand(.1, .42) * dpr), 0, Math.PI * 2);
+                    g.fillStyle = `rgba(192,204,238,${a})`;
+                    g.fill();
+                }
+                for (let i = 0; i < 5; i++) {
+                    const dy = rand(-H * .07, H * .07),
+                        dw = rand(H * .008, H * .025);
+                    const gr = g.createLinearGradient(0, dy - dw, 0, dy + dw);
+                    gr.addColorStop(0, 'rgba(0,0,0,0)');
+                    gr.addColorStop(0.5, `rgba(0,0,0,${rand(.035,.09)})`);
+                    gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr;
+                    g.fillRect(-W * .65, dy - dw, W * 1.3, dw * 2);
+                }
+                g.restore();
+                Lmw = c;
+            }
+
+            function buildDeepField() {
+                const c = document.createElement('canvas');
+                c.width = W;
+                c.height = H;
+                const g = c.getContext('2d');
+                for (let i = 0; i < 700; i++) {
+                    const c2 = col(),
+                        a = rand(.03, .20);
+                    g.fillStyle = `rgba(${c2.r},${c2.g},${c2.b},${a})`;
+                    const s = rand(.12, .48) * dpr;
+                    g.fillRect(rand(0, W), rand(0, H), s, s);
+                }
+                Ldf = c;
+            }
+
+            const galaxies = [];
+
+            function mkSpiral(rx, ry, tint) {
+                const pad = 1.65,
+                    cw = Math.ceil(rx * 2 * pad),
+                    ch = Math.ceil(ry * 2 * pad);
+                const gc = document.createElement('canvas');
+                gc.width = cw;
+                gc.height = ch;
+                const g = gc.getContext('2d'),
+                    cx2 = cw / 2,
+                    cy2 = ch / 2,
+                    asp = ry / Math.max(.01, rx);
+                const arms = 2;
+                for (let arm = 0; arm < arms; arm++) {
+                    const off = (arm / arms) * Math.PI * 2;
+                    for (let i = 0; i < 550; i++) {
+                        const t = i / 550,
+                            th = off + t * Math.PI * 3.4,
+                            dist = t * rx * .93;
+                        const sc = (2 + t * 22) * dpr;
+                        const px = cx2 + Math.cos(th) * dist + rand(-sc, sc);
+                        const py = cy2 + Math.sin(th) * dist * asp + rand(-sc, sc) * asp;
+                        const ef = t;
+                        const cr = clp(Math.round(tint.r * (1 - ef * .38) + 148 * ef * .38), 0, 255);
+                        const cg2 = clp(Math.round(tint.g * (1 - ef * .28) + 168 * ef * .28), 0, 255);
+                        const cb = clp(Math.round(tint.b + (255 - tint.b) * ef * .22), 0, 255);
+                        const a = (1 - t * .52) * rand(.05, .30);
+                        const sr = Math.max(.08, rand(.18, .85) * dpr * (1 - t * .28));
+                        g.beginPath();
+                        g.arc(px, py, sr, 0, Math.PI * 2);
+                        g.fillStyle = `rgba(${cr},${cg2},${cb},${a})`;
+                        g.fill();
+                    }
+                }
+                for (let i = 0; i < 280; i++) {
+                    const an = rand(0, Math.PI * 2),
+                        d = rand(0, rx * .84);
+                    const px = cx2 + Math.cos(an) * d + rand(-3.5, 3.5) * dpr;
+                    const py = cy2 + Math.sin(an) * d * asp + rand(-3.5, 3.5) * dpr;
+                    const a = (1 - d / (rx * .84)) * rand(.018, .09);
+                    g.beginPath();
+                    g.arc(px, py, Math.max(.08, rand(.12, .48) * dpr), 0, Math.PI * 2);
+                    g.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${a})`;
+                    g.fill();
+                }
+                const bR = Math.max(1, rx * .32);
+                const bg = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, bR);
+                bg.addColorStop(0, `rgba(${clp(tint.r+85,0,255)},${clp(tint.g+75,0,255)},${clp(tint.b+45,0,255)},0.48)`);
+                bg.addColorStop(.38, `rgba(${tint.r},${tint.g},${tint.b},0.14)`);
+                bg.addColorStop(1, 'rgba(0,0,0,0)');
+                g.fillStyle = bg;
+                g.beginPath();
+                g.ellipse(cx2, cy2, bR, Math.max(1, bR * asp), 0, 0, Math.PI * 2);
+                g.fill();
+                const dR = Math.max(1, rx * 1.08);
+                const dg = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, dR);
+                dg.addColorStop(0, `rgba(${tint.r},${tint.g},${tint.b},0.065)`);
+                dg.addColorStop(.5, `rgba(${tint.r},${tint.g},${tint.b},0.022)`);
+                dg.addColorStop(1, 'rgba(0,0,0,0)');
+                g.fillStyle = dg;
+                g.beginPath();
+                g.ellipse(cx2, cy2, dR, Math.max(1, dR * asp), 0, 0, Math.PI * 2);
+                g.fill();
+                const cR = Math.max(.4, 2.8 * dpr);
+                const cg3 = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, cR);
+                cg3.addColorStop(0, 'rgba(255,255,248,0.62)');
+                cg3.addColorStop(.5, `rgba(${clp(tint.r+55,0,255)},${clp(tint.g+45,0,255)},${clp(tint.b+25,0,255)},0.22)`);
+                cg3.addColorStop(1, 'rgba(0,0,0,0)');
+                g.fillStyle = cg3;
+                g.beginPath();
+                g.arc(cx2, cy2, cR, 0, Math.PI * 2);
+                g.fill();
+                return gc;
+            }
+
+            function mkEllip(rx, ry, tint) {
+                const pad = 1.65,
+                    cw = Math.ceil(rx * 2 * pad),
+                    ch = Math.ceil(ry * 2 * pad);
+                const gc = document.createElement('canvas');
+                gc.width = cw;
+                gc.height = ch;
+                const g = gc.getContext('2d'),
+                    cx2 = cw / 2,
+                    cy2 = ch / 2,
+                    asp = ry / Math.max(.01, rx);
+                const gr = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, Math.max(1, rx));
+                gr.addColorStop(0, `rgba(${clp(tint.r+75,0,255)},${clp(tint.g+65,0,255)},${clp(tint.b+35,0,255)},0.38)`);
+                gr.addColorStop(.15, `rgba(${tint.r},${tint.g},${tint.b},0.16)`);
+                gr.addColorStop(.5, `rgba(${tint.r},${tint.g},${tint.b},0.045)`);
+                gr.addColorStop(1, 'rgba(0,0,0,0)');
+                g.save();
+                g.translate(cx2, cy2);
+                g.scale(1, asp);
+                g.beginPath();
+                g.arc(0, 0, Math.max(1, rx), 0, Math.PI * 2);
+                g.fillStyle = gr;
+                g.fill();
+                g.restore();
+                for (let i = 0; i < 220; i++) {
+                    const an = rand(0, Math.PI * 2),
+                        d = Math.pow(Math.random(), .55) * rx * .9;
+                    const px = cx2 + Math.cos(an) * d,
+                        py = cy2 + Math.sin(an) * d * asp;
+                    const a = (1 - d / (rx * .9)) * rand(.035, .17);
+                    g.beginPath();
+                    g.arc(px, py, Math.max(.08, rand(.18, .58) * dpr), 0, Math.PI * 2);
+                    g.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${a})`;
+                    g.fill();
+                }
+                const cR = Math.max(.4, 2.2 * dpr);
+                const cg2 = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, cR);
+                cg2.addColorStop(0, 'rgba(255,252,235,0.52)');
+                cg2.addColorStop(1, 'rgba(0,0,0,0)');
+                g.fillStyle = cg2;
+                g.beginPath();
+                g.arc(cx2, cy2, cR, 0, Math.PI * 2);
+                g.fill();
+                return gc;
+            }
+
+            function mkIrreg(rx, ry, tint) {
+                const pad = 1.7,
+                    cw = Math.ceil(rx * 2 * pad),
+                    ch = Math.ceil(ry * 2 * pad);
+                const gc = document.createElement('canvas');
+                gc.width = cw;
+                gc.height = ch;
+                const g = gc.getContext('2d'),
+                    cx2 = cw / 2,
+                    cy2 = ch / 2;
+                const blobs = [
+                    { dx: -.2, dy: -.15, r: .5 }, { dx: .25, dy: .1, r: .45 },
+                    { dx: -.05, dy: .25, r: .35 }, { dx: .15, dy: -.2, r: .3 },
+                ];
+                blobs.forEach(bl => {
+                    const bx = cx2 + bl.dx * rx,
+                        by = cy2 + bl.dy * ry,
+                        br = Math.max(1, bl.r * rx);
+                    const gr = g.createRadialGradient(bx, by, 0, bx, by, br);
+                    gr.addColorStop(0, `rgba(${tint.r},${tint.g},${tint.b},0.12)`);
+                    gr.addColorStop(.5, `rgba(${tint.r},${tint.g},${tint.b},0.03)`);
+                    gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    g.fillStyle = gr;
+                    g.beginPath();
+                    g.arc(bx, by, br, 0, Math.PI * 2);
+                    g.fill();
+                });
+                for (let i = 0; i < 200; i++) {
+                    const bx = cx2 + rand(-rx * .7, rx * .7),
+                        by = cy2 + rand(-ry * .7, ry * .7);
+                    const dx = (bx - cx2) / rx,
+                        dy = (by - cy2) / ry,
+                        dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > .75) continue;
+                    const a = (1 - dist / .75) * rand(.04, .18);
+                    g.beginPath();
+                    g.arc(bx, by, Math.max(.08, rand(.15, .5) * dpr), 0, Math.PI * 2);
+                    g.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${a})`;
+                    g.fill();
+                }
+                return gc;
+            }
+
+            function initGalaxies() {
+                galaxies.length = 0;
+                const defs = [
+                    { t: 's', rx: 48, ry: 19, tint: { r: 200, g: 190, b: 222 }, x: .14, y: .24, rot: .3, sp: .00003 },
+                    { t: 's', rx: 65, ry: 24, tint: { r: 178, g: 196, b: 232 }, x: .80, y: .16, rot: -.5, sp: -.00002 },
+                    { t: 'e', rx: 26, ry: 21, tint: { r: 222, g: 202, b: 172 }, x: .56, y: .74, rot: .8, sp: .00001 },
+                    { t: 's', rx: 38, ry: 13, tint: { r: 212, g: 202, b: 242 }, x: .90, y: .58, rot: 1.2, sp: .00004 },
+                    { t: 'e', rx: 19, ry: 15, tint: { r: 242, g: 214, b: 182 }, x: .28, y: .87, rot: -.2, sp: -.00001 },
+                    { t: 's', rx: 55, ry: 18, tint: { r: 192, g: 202, b: 238 }, x: .43, y: .13, rot: .7, sp: -.00003 },
+                    { t: 'e', rx: 16, ry: 13, tint: { r: 232, g: 218, b: 192 }, x: .07, y: .53, rot: 1.5, sp: .00002 },
+                    { t: 's', rx: 42, ry: 16, tint: { r: 198, g: 188, b: 228 }, x: .67, y: .44, rot: -.9, sp: .000025 },
+                    { t: 'i', rx: 22, ry: 16, tint: { r: 210, g: 185, b: 195 }, x: .35, y: .48, rot: .1, sp: 0 },
+                    { t: 'i', rx: 18, ry: 14, tint: { r: 195, g: 200, b: 215 }, x: .75, y: .70, rot: -.4, sp: 0 },
+                ];
+                defs.forEach(d => {
+                    const rx = d.rx * dpr,
+                        ry = d.ry * dpr;
+                    const canvas = d.t === 's' ? mkSpiral(rx, ry, d.tint) : d.t === 'e' ? mkEllip(rx, ry, d.tint) :
+                        mkIrreg(rx, ry, d.tint);
+                    galaxies.push({ canvas, x: d.x * W, y: d.y * H, rotation: d.rot, spin: d.sp, vy: rand(.002, .009) });
+                });
+            }
+
+            const clusters = [];
+
+            function mkCluster(radius, tint) {
+                const size = Math.ceil(radius * 3.2);
+                const cc = document.createElement('canvas');
+                cc.width = size;
+                cc.height = size;
+                const c = cc.getContext('2d'),
+                    cx2 = size / 2,
+                    cy2 = size / 2;
+                for (let i = 0; i < 400; i++) {
+                    const u1 = Math.max(1e-5, Math.random()),
+                        u2 = Math.random();
+                    const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                    const d = Math.abs(z) * radius * .34;
+                    if (d > radius) continue;
+                    const an = rand(0, Math.PI * 2);
+                    const px = cx2 + Math.cos(an) * d,
+                        py = cy2 + Math.sin(an) * d;
+                    const a = (1 - d / radius) * rand(.07, .32);
+                    c.beginPath();
+                    c.arc(px, py, Math.max(.08, rand(.18, .52) * dpr), 0, Math.PI * 2);
+                    c.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${a})`;
+                    c.fill();
+                }
+                const gr = Math.max(1, radius * .48);
+                const glow = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, gr);
+                glow.addColorStop(0, `rgba(${tint.r},${tint.g},${tint.b},0.10)`);
+                glow.addColorStop(1, 'rgba(0,0,0,0)');
+                c.fillStyle = glow;
+                c.beginPath();
+                c.arc(cx2, cy2, gr, 0, Math.PI * 2);
+                c.fill();
+                return cc;
+            }
+
+            function initClusters() {
+                clusters.length = 0;
+                [{ r: 15, t: { r: 255, g: 222, b: 162 }, x: .21, y: .38 }, { r: 11, t: { r: 242, g: 212, b: 172 },
+                        x: .73, y: .30 },
+                    { r: 19, t: { r: 252, g: 228, b: 168 }, x: .48, y: .62 }, { r: 9, t: { r: 248, g: 218, b: 178 },
+                        x: .86, y: .82 },
+                    { r: 13, t: { r: 238, g: 225, b: 185 }, x: .12, y: .72 }
+                ].forEach(d => {
+                    clusters.push({ canvas: mkCluster(d.r * dpr, d.t), x: d.x * W, y: d.y * H, vy: rand(.001,
+                            .005) });
+                });
+            }
+
+            let bgS = [],
+                midS = [],
+                fgS = [],
+                dust = [];
+
+            function mkStars() {
+                bgS = [];
+                midS = [];
+                fgS = [];
+                dust = [];
+                for (let i = 0; i < 280; i++) {
+                    bgS.push({
+                        x: rand(0, W),
+                        y: rand(0, H),
+                        r: rand(.32, 1.05) * dpr,
+                        c: col(),
+                        a: rand(.16, .52),
+                        ts: rand(.00018, .00078),
+                        tp: rand(0, 6.28),
+                        vx: rand(-.007, .007),
+                        vy: rand(.003, .018),
+                        tb: .62,
+                        ta: .38
+                    });
+                }
+                for (let i = 0; i < 65; i++) {
+                    const isV = Math.random() < .06;
+                    midS.push({
+                        x: rand(0, W),
+                        y: rand(0, H),
+                        r: rand(.82, 1.72) * dpr,
+                        c: col(),
+                        a: rand(.38, .80),
+                        ts: isV ? rand(.00004, .00014) : rand(.00038, .00125),
+                        tp: rand(0, 6.28),
+                        vx: rand(-.014, .014),
+                        vy: rand(.007, .038),
+                        glow: rand(2, 5.2) * dpr,
+                        tb: isV ? rand(.12, .30) : .62,
+                        ta: isV ? rand(.50, .80) : .38
+                    });
+                }
+                for (let i = 0; i < 14; i++) {
+                    const isV = Math.random() < .08;
+                    fgS.push({
+                        x: rand(0, W),
+                        y: rand(0, H),
+                        r: rand(1.4, 2.9) * dpr,
+                        c: col(),
+                        a: rand(.68, 1),
+                        ts: isV ? rand(.00003, .0001) : rand(.0007, .002),
+                        tp: rand(0, 6.28),
+                        vx: rand(-.022, .022),
+                        vy: rand(.012, .055),
+                        glow: rand(6, 15) * dpr,
+                        spikes: Math.random() < .55,
+                        tb: isV ? rand(.10, .28) : .62,
+                        ta: isV ? rand(.55, .85) : .38
+                    });
+                }
+                for (let i = 0; i < 110; i++) {
+                    dust.push({
+                        x: rand(0, W),
+                        y: rand(0, H),
+                        r: rand(.22, .65) * dpr,
+                        a: rand(.012, .05),
+                        vx: rand(-.005, .005),
+                        vy: rand(.002, .01),
+                        dr: rand(.0001, .00038),
+                        dp: rand(0, 6.28)
+                    });
+                }
+            }
+
+            const shooters = [],
+                afterglows = [];
+            let lastSh = 0,
+                nextDl = rand(1600, 4200);
+
+            function spawnSh() {
+                const roll = Math.random();
+                let type, spd, tl, w, dec, pr, hs;
+                if (roll < .42) { type = 'faint';
+                    spd = rand(24, 40) * dpr;
+                    tl = rand(30, 85) * dpr;
+                    w = rand(.25, .65) * dpr;
+                    dec = rand(.02, .038);
+                    pr = 0;
+                    hs = 1.2 * dpr; } else if (roll < .76) { type = 'std';
+                    spd = rand(17, 29) * dpr;
+                    tl = rand(85, 195) * dpr;
+                    w = rand(.65, 1.35) * dpr;
+                    dec = rand(.008, .016);
+                    pr = 1;
+                    hs = 3.2 * dpr; } else if (roll < .92) { type = 'bright';
+                    spd = rand(13, 22) * dpr;
+                    tl = rand(165, 310) * dpr;
+                    w = rand(1.3, 2.2) * dpr;
+                    dec = rand(.005, .009);
+                    pr = 2;
+                    hs = 5.2 * dpr; } else { type = 'bolide';
+                    spd = rand(9, 16) * dpr;
+                    tl = rand(260, 440) * dpr;
+                    w = rand(2.2, 3.8) * dpr;
+                    dec = rand(.002, .005);
+                    pr = 4;
+                    hs = 9.5 * dpr; }
+
+                const side = Math.random();
+                let x, y, ang;
+                if (side < .38) { x = rand(W * .08, W * .92);
+                    y = rand(-35, H * .04);
+                    ang = rand(Math.PI * .17, Math.PI * .43); } else if (side < .62) { x = -35;
+                    y = rand(0, H * .42);
+                    ang = rand(-Math.PI * .13, Math.PI * .19); } else if (side < .86) { x = W + 35;
+                    y = rand(0, H * .42);
+                    ang = rand(Math.PI * .81, Math.PI * 1.13); } else { x = rand(W * .18, W * .82);
+                    y = -35;
+                    ang = rand(Math.PI * .53, Math.PI * .79); }
+
+                shooters.push({ x, y, ang, spd, type, tl, w, dec, pr, hs, c: col(), life: 1, pts: [] });
+            }
+
+            function dStar(s, t) {
+                const tw = s.tb + s.ta * Math.sin(t * s.ts + s.tp);
+                const a = s.a * tw,
+                    { r, g, b } = s.c;
+                cx.beginPath();
+                cx.arc(s.x, s.y, Math.max(.12, s.r), 0, Math.PI * 2);
+                cx.fillStyle = `rgba(${r},${g},${b},${a})`;
+                cx.fill();
+                if (s.glow) {
+                    const gr = cx.createRadialGradient(s.x, s.y, 0, s.x, s.y, Math.max(.8, s.glow));
+                    gr.addColorStop(0, `rgba(${r},${g},${b},${a*.17})`);
+                    gr.addColorStop(.5, `rgba(${r},${g},${b},${a*.035})`);
+                    gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                    cx.beginPath();
+                    cx.arc(s.x, s.y, Math.max(.8, s.glow), 0, Math.PI * 2);
+                    cx.fillStyle = gr;
+                    cx.fill();
+                }
+                if (s.spikes) {
+                    const len = (s.glow || s.r * 2) * 2.8 * tw;
+                    cx.save();
+                    cx.globalAlpha = a * .085;
+                    cx.strokeStyle = `rgb(${r},${g},${b})`;
+                    cx.lineWidth = .38 * dpr;
+                    cx.beginPath();
+                    cx.moveTo(s.x - len, s.y);
+                    cx.lineTo(s.x + len, s.y);
+                    cx.stroke();
+                    cx.beginPath();
+                    cx.moveTo(s.x, s.y - len);
+                    cx.lineTo(s.x, s.y + len);
+                    cx.stroke();
+                    cx.globalAlpha = a * .032;
+                    const dl = len * .52;
+                    cx.beginPath();
+                    cx.moveTo(s.x - dl, s.y - dl);
+                    cx.lineTo(s.x + dl, s.y + dl);
+                    cx.stroke();
+                    cx.beginPath();
+                    cx.moveTo(s.x + dl, s.y - dl);
+                    cx.lineTo(s.x - dl, s.y + dl);
+                    cx.stroke();
+                    cx.restore();
+                }
+            }
+
+            function dShooter(ss) {
+                const { r, g, b } = ss.c;
+                const tx = ss.x - Math.cos(ss.ang) * ss.tl * ss.life;
+                const ty = ss.y - Math.sin(ss.ang) * ss.tl * ss.life;
+
+                if (ss.type !== 'faint') {
+                    const og = cx.createLinearGradient(tx, ty, ss.x, ss.y);
+                    og.addColorStop(0, `rgba(${r},${g},${b},0)`);
+                    og.addColorStop(.45, `rgba(${r},${g},${b},${ss.life*.035})`);
+                    og.addColorStop(1, `rgba(${r},${g},${b},${ss.life*.10})`);
+                    cx.beginPath();
+                    cx.moveTo(tx, ty);
+                    cx.lineTo(ss.x, ss.y);
+                    cx.strokeStyle = og;
+                    cx.lineWidth = Math.max(.8, ss.w * 5.5 * ss.life);
+                    cx.lineCap = 'round';
+                    cx.stroke();
+                }
+
+                if (ss.type !== 'faint') {
+                    const mg = cx.createLinearGradient(tx, ty, ss.x, ss.y);
+                    mg.addColorStop(0, `rgba(${r},${g},${b},0)`);
+                    mg.addColorStop(.55, `rgba(${r},${g},${b},${ss.life*.09})`);
+                    mg.addColorStop(1, `rgba(${r},${g},${b},${ss.life*.28})`);
+                    cx.beginPath();
+                    cx.moveTo(tx, ty);
+                    cx.lineTo(ss.x, ss.y);
+                    cx.strokeStyle = mg;
+                    cx.lineWidth = Math.max(.4, ss.w * 2.4 * ss.life);
+                    cx.lineCap = 'round';
+                    cx.stroke();
+                }
+
+                const cg = cx.createLinearGradient(tx, ty, ss.x, ss.y);
+                if (ss.type === 'faint') {
+                    cg.addColorStop(0, `rgba(${r},${g},${b},0)`);
+                    cg.addColorStop(.65, `rgba(${r},${g},${b},${ss.life*.28})`);
+                    cg.addColorStop(1, `rgba(255,255,255,${ss.life*.55})`);
+                } else {
+                    cg.addColorStop(0, `rgba(${r},${g},${b},0)`);
+                    cg.addColorStop(.45, `rgba(${r},${g},${b},${ss.life*.18})`);
+                    cg.addColorStop(.82, `rgba(255,255,255,${ss.life*.62})`);
+                    cg.addColorStop(1, `rgba(255,255,255,${ss.life*.88})`);
+                }
+                cx.beginPath();
+                cx.moveTo(tx, ty);
+                cx.lineTo(ss.x, ss.y);
+                cx.strokeStyle = cg;
+                cx.lineWidth = Math.max(.15, ss.w * ss.life);
+                cx.lineCap = 'round';
+                cx.stroke();
+
+                let hr = ss.hs * ss.life;
+                if (ss.type === 'bolide') hr *= (.65 + .65 * Math.pow(Math.sin(ss.life * Math.PI), 2));
+                hr = Math.max(.4, hr);
+                const hg = cx.createRadialGradient(ss.x, ss.y, 0, ss.x, ss.y, hr);
+                if (ss.type === 'bolide') {
+                    hg.addColorStop(0, `rgba(255,255,255,${ss.life*.72})`);
+                    hg.addColorStop(.18, `rgba(255,252,235,${ss.life*.42})`);
+                    hg.addColorStop(.5, `rgba(${r},${g},${b},${ss.life*.14})`);
+                    hg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                } else if (ss.type === 'bright') {
+                    hg.addColorStop(0, `rgba(255,255,255,${ss.life*.6})`);
+                    hg.addColorStop(.3, `rgba(${r},${g},${b},${ss.life*.22})`);
+                    hg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                } else {
+                    hg.addColorStop(0, `rgba(255,255,255,${ss.life*.45})`);
+                    hg.addColorStop(.35, `rgba(${r},${g},${b},${ss.life*.18})`);
+                    hg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                }
+                cx.beginPath();
+                cx.arc(ss.x, ss.y, hr, 0, Math.PI * 2);
+                cx.fillStyle = hg;
+                cx.fill();
+
+                if (ss.type === 'bolide' && ss.life > .2) {
+                    const ar = hr * 4 * ss.life;
+                    const ag = cx.createRadialGradient(ss.x, ss.y, 0, ss.x, ss.y, Math.max(1, ar));
+                    ag.addColorStop(0, `rgba(${r},${g},${b},${ss.life*.025})`);
+                    ag.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                    cx.beginPath();
+                    cx.arc(ss.x, ss.y, Math.max(1, ar), 0, Math.PI * 2);
+                    cx.fillStyle = ag;
+                    cx.fill();
+                }
+
+                ss.pts.forEach(p => {
+                    const pa = p.life * .55;
+                    const pr2 = Math.max(.2, p.r * p.life);
+                    const pg = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, pr2);
+                    pg.addColorStop(0, `rgba(255,255,255,${pa})`);
+                    pg.addColorStop(.45, `rgba(${r},${g},${b},${pa*.35})`);
+                    pg.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, pr2, 0, Math.PI * 2);
+                    cx.fillStyle = pg;
+                    cx.fill();
+                });
+            }
+
+            function dAfter(ag) {
+                const { r, g, b } = ag.c;
+                const ar = Math.max(.4, ag.rad * ag.life);
+                const gr = cx.createRadialGradient(ag.x, ag.y, 0, ag.x, ag.y, ar);
+                gr.addColorStop(0, `rgba(${r},${g},${b},${ag.life*.14})`);
+                gr.addColorStop(.5, `rgba(${r},${g},${b},${ag.life*.035})`);
+                gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                cx.beginPath();
+                cx.arc(ag.x, ag.y, ar, 0, Math.PI * 2);
+                cx.fillStyle = gr;
+                cx.fill();
+            }
+
+            function wrap(s) {
+                if (s.y > H + 22) { s.y = -22;
+                    s.x = rand(0, W); }
+                if (s.y < -22) { s.y = H + 22;
+                    s.x = rand(0, W); }
+                if (s.x > W + 22) s.x = -22;
+                if (s.x < -22) s.x = W + 22;
+            }
+
+            function rebuild() {
+                W = cv.width = window.innerWidth * dpr;
+                H = cv.height = window.innerHeight * dpr;
+                buildNebula();
+                buildMilkyWay();
+                buildDeepField();
+                initGalaxies();
+                initClusters();
+                mkStars();
+            }
+            rebuild();
+            window.addEventListener('resize', rebuild);
+
+            const t0 = performance.now();
+
+            function frame(now) {
+                const t = now - t0;
+                cx.fillStyle = '#000000';
+                cx.fillRect(0, 0, W, H);
+
+                if (Lneb) cx.drawImage(Lneb, 0, 0);
+                if (Lmw) cx.drawImage(Lmw, 0, 0);
+                if (Ldf) cx.drawImage(Ldf, 0, 0);
+
+                for (const g of galaxies) {
+                    g.rotation += g.spin;
+                    g.y += g.vy;
+                    if (g.y > H + 120) { g.y = -120;
+                        g.x = rand(W * .04, W * .96); }
+                    cx.save();
+                    cx.translate(g.x, g.y);
+                    cx.rotate(g.rotation);
+                    cx.globalAlpha = .88;
+                    cx.drawImage(g.canvas, -g.canvas.width / 2, -g.canvas.height / 2);
+                    cx.globalAlpha = 1;
+                    cx.restore();
+                }
+
+                for (const c of clusters) {
+                    c.y += c.vy;
+                    if (c.y > H + 70) { c.y = -70;
+                        c.x = rand(W * .04, W * .96); }
+                    cx.drawImage(c.canvas, c.x - c.canvas.width / 2, c.y - c.canvas.height / 2);
+                }
+
+                for (const s of bgS) {
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    wrap(s);
+                    const tw = s.tb + s.ta * Math.sin(t * s.ts + s.tp);
+                    cx.fillStyle = `rgba(${s.c.r},${s.c.g},${s.c.b},${s.a*tw})`;
+                    cx.beginPath();
+                    cx.arc(s.x, s.y, Math.max(.12, s.r), 0, Math.PI * 2);
+                    cx.fill();
+                }
+
+                for (const d of dust) {
+                    d.x += d.vx + Math.sin(t * d.dr + d.dp) * .0018;
+                    d.y += d.vy;
+                    wrap(d);
+                    cx.beginPath();
+                    cx.arc(d.x, d.y, Math.max(.08, d.r), 0, Math.PI * 2);
+                    cx.fillStyle = `rgba(172,184,212,${d.a})`;
+                    cx.fill();
+                }
+
+                for (const s of midS) { s.x += s.vx;
+                    s.y += s.vy;
+                    wrap(s);
+                    dStar(s, t); }
+                for (const s of fgS) { s.x += s.vx;
+                    s.y += s.vy;
+                    wrap(s);
+                    dStar(s, t); }
+
+                for (let i = afterglows.length - 1; i >= 0; i--) {
+                    const ag = afterglows[i];
+                    ag.life -= ag.dec;
+                    if (ag.life <= 0) { afterglows.splice(i, 1); continue; }
+                    dAfter(ag);
+                }
+
+                if (t - lastSh > nextDl) { spawnSh();
+                    lastSh = t;
+                    nextDl = rand(1600, 4200); }
+
+                for (let i = shooters.length - 1; i >= 0; i--) {
+                    const ss = shooters[i];
+                    ss.x += Math.cos(ss.ang) * ss.spd;
+                    ss.y += Math.sin(ss.ang) * ss.spd;
+                    ss.life -= ss.dec;
+
+                    if (ss.pr > 0 && ss.life > .04) {
+                        const perp = ss.ang + Math.PI / 2;
+                        for (let p = 0; p < ss.pr; p++) {
+                            if (ss.pts.length > 120) break;
+                            ss.pts.push({
+                                x: ss.x + rand(-1.8, 1.8) * dpr,
+                                y: ss.y + rand(-1.8, 1.8) * dpr,
+                                vx: -Math.cos(ss.ang) * rand(.25, 1.4) * dpr + Math.cos(perp) * rand(-.7, .7) *
+                                    dpr,
+                                vy: -Math.sin(ss.ang) * rand(.25, 1.4) * dpr + Math.sin(perp) * rand(-.7, .7) *
+                                    dpr + .06 * dpr,
+                                life: 1,
+                                dec: rand(.022, .058),
+                                r: rand(.4, 1.4) * dpr
+                            });
+                        }
+                    }
+
+                    for (let j = ss.pts.length - 1; j >= 0; j--) {
+                        const p = ss.pts[j];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += .0015 * dpr;
+                        p.life -= p.dec;
+                        if (p.life <= 0) ss.pts.splice(j, 1);
+                    }
+
+                    if (ss.life <= 0 || ss.x < -550 || ss.x > W + 550 || ss.y > H + 550 || ss.y < -550) {
+                        if (ss.type !== 'faint' && ss.life > -.12) {
+                            afterglows.push({
+                                x: ss.x,
+                                y: ss.y,
+                                c: ss.c,
+                                rad: ss.type === 'bolide' ? 14 * dpr : ss.type === 'bright' ? 9 * dpr : 5.5 *
+                                dpr,
+                                life: 1,
+                                dec: ss.type === 'bolide' ? .007 : .014
+                            });
+                        }
+                        shooters.splice(i, 1);
+                    } else {
+                        dShooter(ss);
+                    }
+                }
+
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        })();
     </script>
 
 </body>
