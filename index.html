@@ -322,67 +322,15 @@
         }
 
         /* ─── AI CHAT VIEW ─── */
-        #aiView.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .ai-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 6px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-        .ai-header .title {
-            color: #00ff00;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        .ai-header .status-indicator {
-            font-size: 10px;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .ai-header .status-indicator .s-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: #00ff00;
-            display: inline-block;
-            transition: background 0.3s;
-        }
-        .ai-header .status-indicator .s-dot.idle {
-            background: #444;
-        }
-        .ai-header .status-indicator .s-dot.thinking {
-            background: #ffaa00;
-            animation: pulse 0.8s ease-in-out infinite;
-        }
-        .ai-header .status-indicator .s-dot.searching {
-            background: #00aaff;
-            animation: pulse 0.5s ease-in-out infinite;
-        }
-        .ai-header .status-indicator .s-dot.error {
-            background: #ff4466;
-        }
-
         .chat-box {
             background: #050708;
             border: 1px solid #1a1a1a;
             border-radius: 3px;
             padding: 8px 10px;
-            min-height: 220px;
-            max-height: 320px;
+            min-height: 200px;
+            max-height: 280px;
             overflow-y: auto;
             margin-bottom: 8px;
-            flex: 1;
         }
         .chat-box::-webkit-scrollbar {
             width: 4px;
@@ -530,6 +478,32 @@
             color: #ff8844;
         }
 
+        /* ─── LIVE CHAT VIEW ─── */
+        #liveChatView .chat-box {
+            min-height: 220px;
+            max-height: 300px;
+        }
+        .chat-box .msg.remote {
+            color: #d4b8ff;
+        }
+        .chat-box .msg.remote .prefix {
+            color: #aa88dd;
+        }
+        .chat-box .msg.local {
+            color: #88ccff;
+        }
+        .chat-box .msg.local .prefix {
+            color: #446688;
+        }
+        .chat-box .msg.system {
+            color: #666;
+            font-size: 11px;
+            font-style: italic;
+        }
+        .chat-box .msg.system .prefix {
+            color: #555;
+        }
+
         /* ─── responsive ─── */
         @media (max-width: 540px) {
             .container {
@@ -645,6 +619,7 @@
             <button class="nav-tab active" data-view="profileView">⌂ profile</button>
             <button class="nav-tab" data-view="projectsView">📂 projects</button>
             <button class="nav-tab" data-view="aiView">🤖 ai chat</button>
+            <button class="nav-tab" data-view="liveChatView">💬 live chat</button>
         </div>
 
         <!-- ─── PROFILE VIEW ─── -->
@@ -775,15 +750,15 @@
 
         <!-- ─── AI CHAT VIEW ─── -->
         <div class="view" id="aiView">
-            <div class="ai-header">
-                <span class="title">⏣ ai assistant</span>
-                <span class="status-indicator" id="aiStatus">
-                    <span class="s-dot idle" id="statusDot"></span>
+            <div class="ai-header" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a1a;padding-bottom:6px;margin-bottom:8px;">
+                <span style="color:#00ff00;font-size:14px;font-weight:700;letter-spacing:1px;">⏣ ai assistant</span>
+                <span style="font-size:10px;color:#555;display:flex;align-items:center;gap:5px;">
+                    <span class="s-dot idle" id="statusDot" style="width:5px;height:5px;border-radius:50%;background:#444;display:inline-block;"></span>
                     <span id="statusText">idle</span>
                 </span>
             </div>
 
-            <div class="chat-box" id="chatBox">
+            <div class="chat-box" id="aiChatBox">
                 <div class="msg ai">
                     <span class="prefix">⏣</span>
                     hey. i'm vqll's ai assistant. i know about his projects, his roblox wubby stuff, and i can search the web if i need to. ask me anything.
@@ -805,6 +780,31 @@
             </div>
         </div>
 
+        <!-- ─── LIVE CHAT VIEW ─── -->
+        <div class="view" id="liveChatView">
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a1a;padding-bottom:6px;margin-bottom:8px;">
+                <span style="color:#00ff00;font-size:14px;font-weight:700;letter-spacing:1px;">💬 live chat</span>
+                <span style="font-size:10px;color:#555;" id="chatStatus">● connected</span>
+            </div>
+
+            <div class="chat-box" id="liveChatBox">
+                <div class="msg system">
+                    <span class="prefix">ⓘ</span>
+                    welcome to the live chat. messages appear in real-time.
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="liveChatInput" placeholder="type a message..." />
+                <button id="liveChatSendBtn">➤ send</button>
+            </div>
+
+            <div style="margin-top:6px;border-top:1px solid #1a1a1a;padding-top:6px;font-size:9px;color:#444;display:flex;justify-content:space-between;">
+                <span>🔒 messages are public • <span id="userCount">0</span> online</span>
+                <span>press <span class="hl" style="color:#00ff00;">enter</span> to send</span>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -818,7 +818,6 @@
                     this.ctx = new(window.AudioContext || window.webkitAudioContext)();
                 } catch (e) {}
 
-                // Preload sounds
                 const soundFiles = [
                     'ambient', 'auth-accept', 'boot', 'click', 'context-add', 'context-remove',
                     'error', 'generating', 'intro1', 'keypress', 'keypress2', 'keypress3',
@@ -833,7 +832,6 @@
                     this.sounds[name] = audio;
                 });
 
-                // Try to resume audio context on user interaction
                 this.resumeOnInteraction();
             }
 
@@ -858,14 +856,11 @@
                         clone.volume = Math.min(1, Math.max(0, volume));
                         clone.currentTime = 0;
                         clone.play().catch(() => {});
-                        // Clean up after playing
                         setTimeout(() => {
                             if (clone.parentNode) clone.remove();
                         }, 3000);
                     }
-                } catch (e) {
-                    // Silently fail if sound can't play
-                }
+                } catch (e) {}
             }
 
             toggle() {
@@ -874,16 +869,253 @@
             }
         }
 
-        // ─── Init Sound Manager ───
         const sound = new SoundManager();
 
-        // ─── Play sounds on page load ───
+        // ─── Boot sounds ───
         setTimeout(() => {
             sound.play('boot', 0.4);
             sound.play('intro1', 0.3);
         }, 300);
 
-        // ─── Full AI Chat Script ───
+        // ─── Clock ───
+        const clockEl = document.getElementById('clock');
+
+        function tickClock() {
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            clockEl.textContent = hh + ':' + mm;
+        }
+        setInterval(tickClock, 10000);
+        tickClock();
+
+        // ─── Navigation tabs with sounds ───
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                sound.play('click', 0.3);
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById(tab.dataset.view).classList.add('active');
+                if (tab.dataset.view === 'aiView') {
+                    setTimeout(() => document.getElementById('aiInput').focus(), 100);
+                    sound.play('unlock', 0.3);
+                } else if (tab.dataset.view === 'liveChatView') {
+                    setTimeout(() => document.getElementById('liveChatInput').focus(), 100);
+                    sound.play('unlock', 0.3);
+                } else {
+                    sound.play('lock', 0.2);
+                }
+            });
+        });
+
+        // ─── block right-click ───
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // ════════════════════════════════════════════════════════════
+        //  LIVE CHAT (Firebase Realtime Database)
+        // ════════════════════════════════════════════════════════════
+
+        // ─── Firebase Config (REPLACE WITH YOUR OWN) ───
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ─── Firebase initialization ───
+        let firebaseApp, database, auth;
+        let chatInitialized = false;
+        let messageListener = null;
+        let presenceRef = null;
+        let userRef = null;
+        let userName = 'anon';
+
+        // We'll load Firebase SDKs dynamically
+        function loadFirebase() {
+            return new Promise((resolve, reject) => {
+                if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+                    resolve();
+                    return;
+                }
+                // Load Firebase App and Database
+                const script1 = document.createElement('script');
+                script1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+                script1.onload = () => {
+                    const script2 = document.createElement('script');
+                    script2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+                    script2.onload = () => {
+                        // Also load auth for anonymous
+                        const script3 = document.createElement('script');
+                        script3.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js';
+                        script3.onload = () => {
+                            resolve();
+                        };
+                        script3.onerror = reject;
+                        document.head.appendChild(script3);
+                    };
+                    script2.onerror = reject;
+                    document.head.appendChild(script2);
+                };
+                script1.onerror = reject;
+                document.head.appendChild(script1);
+            });
+        }
+
+        function initFirebase() {
+            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                document.getElementById('liveChatBox').innerHTML +=
+                    `<div class="msg system"><span class="prefix">ⓘ</span> ⚠️ Firebase not configured. Please set your config.</div>`;
+                return;
+            }
+            try {
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                auth = firebase.auth();
+
+                // Anonymous auth
+                auth.signInAnonymously().then(() => {
+                    chatInitialized = true;
+                    document.getElementById('chatStatus').textContent = '● connected';
+                    startListening();
+                    setupPresence();
+                }).catch(err => {
+                    document.getElementById('liveChatBox').innerHTML +=
+                        `<div class="msg error"><span class="prefix">✗</span> auth error: ${err.message}</div>`;
+                    sound.play('error', 0.5);
+                });
+            } catch (e) {
+                document.getElementById('liveChatBox').innerHTML +=
+                    `<div class="msg error"><span class="prefix">✗</span> init error: ${e.message}</div>`;
+                sound.play('error', 0.5);
+            }
+        }
+
+        // ─── Live chat DOM refs ───
+        const liveChatBox = document.getElementById('liveChatBox');
+        const liveChatInput = document.getElementById('liveChatInput');
+        const liveChatSendBtn = document.getElementById('liveChatSendBtn');
+        const userCountEl = document.getElementById('userCount');
+
+        // ─── Send message ───
+        function sendLiveMessage() {
+            const text = liveChatInput.value.trim();
+            if (!text || !chatInitialized) return;
+            liveChatInput.value = '';
+            sound.play('vault-send', 0.3);
+
+            const msgRef = database.ref('messages').push();
+            msgRef.set({
+                user: userName || 'anon',
+                text: text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).catch(err => {
+                liveChatBox.innerHTML +=
+                    `<div class="msg error"><span class="prefix">✗</span> send error: ${err.message}</div>`;
+                sound.play('error', 0.5);
+            });
+        }
+
+        // ─── Start listening for messages ───
+        function startListening() {
+            if (messageListener) return;
+            const messagesRef = database.ref('messages').limitToLast(50);
+            messageListener = messagesRef.on('child_added', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+                const { user, text } = data;
+                const isLocal = (user === userName);
+                const type = isLocal ? 'local' : 'remote';
+                const prefix = isLocal ? '❯' : '⏣';
+                const div = document.createElement('div');
+                div.className = `msg ${type}`;
+                div.innerHTML = `<span class="prefix">${prefix}</span> <span style="color:#888;">${user}:</span> ${text}`;
+                liveChatBox.appendChild(div);
+                liveChatBox.scrollTop = liveChatBox.scrollHeight;
+                if (!isLocal) {
+                    sound.play('vault-response', 0.3);
+                }
+                // update user count (we'll track presence separately)
+            });
+        }
+
+        // ─── Presence tracking (simple online count) ───
+        function setupPresence() {
+            const userRef = database.ref('presence/' + auth.currentUser.uid);
+            userRef.onDisconnect().remove();
+
+            // Set online
+            userRef.set({
+                online: true,
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Listen for online count
+            const presenceRef = database.ref('presence');
+            presenceRef.on('value', (snap) => {
+                const data = snap.val();
+                let count = 0;
+                if (data) {
+                    for (const key in data) {
+                        if (data[key].online === true) count++;
+                    }
+                }
+                userCountEl.textContent = count;
+            });
+        }
+
+        // ─── Live chat event listeners ───
+        liveChatSendBtn.addEventListener('click', () => {
+            sound.play('click', 0.3);
+            sendLiveMessage();
+        });
+        liveChatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sound.play('click', 0.3);
+                sendLiveMessage();
+            } else if (e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
+                const sounds = ['keypress', 'keypress2', 'keypress3'];
+                const idx = Math.floor(Math.random() * sounds.length);
+                sound.play(sounds[idx], 0.15);
+            }
+        });
+
+        // ─── Init Firebase when live chat tab is shown ───
+        // We'll initialize on first click of the live chat tab
+        let firebaseLoaded = false;
+
+        function initChatOnDemand() {
+            if (firebaseLoaded) return;
+            firebaseLoaded = true;
+            loadFirebase().then(() => {
+                initFirebase();
+            }).catch(err => {
+                liveChatBox.innerHTML +=
+                    `<div class="msg error"><span class="prefix">✗</span> failed to load Firebase: ${err.message}</div>`;
+                sound.play('error', 0.5);
+            });
+        }
+
+        // Override tab click to init chat
+        const originalTabClick = document.querySelector('.nav-tab[data-view="liveChatView"]').click;
+        document.querySelector('.nav-tab[data-view="liveChatView"]').addEventListener('click', function(e) {
+            if (!firebaseLoaded) {
+                initChatOnDemand();
+            }
+        });
+
+        // Also if user directly navigates via URL, we might need to init, but we'll keep it simple.
+
+        // ─── Also handle page load if live chat is default? not, but we can check later.
+
+        // ════════════════════════════════════════════════════════════
+        //  AI CHAT (same as before, but integrated)
+        // ════════════════════════════════════════════════════════════
 
         // ─── Config ───
         const MISTRAL_API_KEY = 'CmU6jKRZXoA3YBMqMmSqnJsZwKEYK96R';
@@ -891,7 +1123,6 @@
         const TAVILY_API_KEY = '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';
         const CORS_PROXY = 'https://corsproxy.io/?';
 
-        // ─── System Prompt (Human-like, all lowercase, short, casual) ───
         const SYSTEM_PROMPT = `you're vqll's ai assistant. you talk like a human — short, direct, not always positive or agreeing. you have a dry, sometimes sarcastic tone. use all lowercase. keep responses short (1-3 sentences unless asked for more). be honest, sometimes critical. don't be overly positive.
 
         about vqll:
@@ -936,86 +1167,45 @@
         - respond in all lowercase
         - be short and direct`;
 
-        // ─── DOM refs ───
-        const chatBox = document.getElementById('chatBox');
+        // ─── AI DOM refs ───
+        const aiChatBox = document.getElementById('aiChatBox');
         const aiInput = document.getElementById('aiInput');
         const aiSendBtn = document.getElementById('aiSendBtn');
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
 
-        // ─── Navigation tabs with sounds ───
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                sound.play('click', 0.3);
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                document.getElementById(tab.dataset.view).classList.add('active');
-                if (tab.dataset.view === 'aiView') {
-                    setTimeout(() => aiInput.focus(), 100);
-                    sound.play('unlock', 0.3);
-                } else {
-                    sound.play('lock', 0.2);
-                }
-            });
-        });
-
-        // ─── Status update with sound ───
         function setStatus(state, text) {
             statusDot.className = 's-dot ' + state;
             statusText.textContent = text;
-            if (state === 'thinking') {
-                sound.play('generating', 0.3);
-            } else if (state === 'searching') {
-                sound.play('scan', 0.3);
-            } else if (state === 'error') {
-                sound.play('error', 0.4);
-            } else if (state === 'idle') {
-                // play subtle success when done
-                if (statusText.textContent !== text) {
-                    sound.play('success', 0.2);
-                }
-            }
+            if (state === 'thinking') sound.play('generating', 0.3);
+            else if (state === 'searching') sound.play('scan', 0.3);
+            else if (state === 'error') sound.play('error', 0.4);
+            else if (state === 'idle' && statusText.textContent !== text) sound.play('success', 0.2);
         }
 
-        // ─── Add message to chat with sound ───
-        function addMessage(text, type = 'ai') {
+        function addAIMessage(text, type = 'ai') {
             const div = document.createElement('div');
             div.className = `msg ${type}`;
-            const prefixes = {
-                user: '❯',
-                ai: '⏣',
-                error: '✗',
-                system: 'ⓘ',
-                searching: '🔍',
-                typing: '…'
-            };
+            const prefixes = { user: '❯', ai: '⏣', error: '✗', system: 'ⓘ', searching: '🔍', typing: '…' };
             div.innerHTML = `<span class="prefix">${prefixes[type] || '•'}</span> ${text}`;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Play sounds based on message type
-            if (type === 'user') {
-                sound.play('vault-send', 0.25);
-            } else if (type === 'ai') {
-                sound.play('vault-response', 0.3);
-            } else if (type === 'searching') {
-                sound.play('scan-hit', 0.3);
-            } else if (type === 'error') {
-                sound.play('error', 0.4);
-            }
+            aiChatBox.appendChild(div);
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
+            if (type === 'user') sound.play('vault-send', 0.25);
+            else if (type === 'ai') sound.play('vault-response', 0.3);
+            else if (type === 'searching') sound.play('scan-hit', 0.3);
+            else if (type === 'error') sound.play('error', 0.4);
             return div;
         }
 
         let typingEl = null;
 
         function showTyping() {
-            removeTyping();
+            if (typingEl) return;
             typingEl = document.createElement('div');
             typingEl.className = 'msg typing';
             typingEl.innerHTML = `<span class="prefix">⏣</span> <span style="color:#446644;">thinking...</span>`;
-            chatBox.appendChild(typingEl);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            aiChatBox.appendChild(typingEl);
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
             sound.play('generating', 0.2);
         }
 
@@ -1026,28 +1216,19 @@
             }
         }
 
-        // ─── Keypress sound ───
+        // ─── AI keypress sounds ───
         aiInput.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter' && e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
                 const sounds = ['keypress', 'keypress2', 'keypress3'];
                 const idx = Math.floor(Math.random() * sounds.length);
                 sound.play(sounds[idx], 0.15);
             }
-            if (e.key === 'Enter') {
-                sound.play('click', 0.3);
-            }
+            if (e.key === 'Enter') sound.play('click', 0.3);
         });
 
-        // ─── Click sound for send button ───
-        aiSendBtn.addEventListener('click', () => {
-            sound.play('click', 0.3);
-        });
-
-        // ─── Call Mistral API ───
         async function callMistral(messages, opts = {}) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), 30000);
-
             try {
                 const payload = {
                     model: opts.model || MISTRAL_MODEL,
@@ -1055,9 +1236,7 @@
                     max_tokens: opts.maxTokens || 900,
                     temperature: opts.temperature !== undefined ? opts.temperature : 0.85
                 };
-
                 const url = CORS_PROXY + encodeURIComponent('https://api.mistral.ai/v1/chat/completions');
-
                 const res = await fetch(url, {
                     method: 'POST',
                     headers: {
@@ -1067,44 +1246,31 @@
                     signal: controller.signal,
                     body: JSON.stringify(payload)
                 });
-
                 clearTimeout(timer);
-
                 if (!res.ok) {
                     let errDetail = `HTTP ${res.status}`;
-                    try {
-                        const j = await res.json();
-                        errDetail = JSON.stringify(j, null, 2);
-                    } catch (e2) {}
+                    try { const j = await res.json();
+                        errDetail = JSON.stringify(j, null, 2); } catch (e2) {}
                     if (res.status === 401) return { ok: false, code: 'AUTH', error: 'invalid api key (401).' };
                     if (res.status === 402) return { ok: false, code: 'QUOTA', error: 'insufficient credits (402).' };
                     if (res.status === 429) return { ok: false, code: 'RATE', error: 'rate limit exceeded (429).' };
                     return { ok: false, code: 'HTTP_' + res.status, error: `server error http ${res.status}.` };
                 }
-
                 const data = await res.json();
-                if (data.error) {
-                    return { ok: false, code: 'API_ERR', error: data.error.message || 'api error.' };
-                }
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    return { ok: false, code: 'EMPTY', error: 'model returned no content.' };
-                }
-                // Force lowercase response
-                let content = data.choices[0].message.content;
-                content = content.toLowerCase();
-                return { ok: true, content: content };
+                if (data.error) return { ok: false, code: 'API_ERR', error: data.error.message || 'api error.' };
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) return { ok: false, code: 'EMPTY',
+                    error: 'model returned no content.' };
+                let content = data.choices[0].message.content.toLowerCase();
+                return { ok: true, content };
             } catch (e) {
                 clearTimeout(timer);
-                if (e.name === 'AbortError') {
-                    return { ok: false, code: 'TIMEOUT', error: 'request timed out.' };
-                }
+                if (e.name === 'AbortError') return { ok: false, code: 'TIMEOUT', error: 'request timed out.' };
                 const isNet = (e instanceof TypeError && e.message.toLowerCase().includes('fetch'));
                 return { ok: false, code: isNet ? 'NETWORK' : 'EXCEPTION', error: isNet ? 'network error — check connection.' :
                         e.message };
             }
         }
 
-        // ─── Tavily Search ───
         async function tavilySearch(query) {
             try {
                 const url = CORS_PROXY + encodeURIComponent('https://api.tavily.com/search');
@@ -1115,17 +1281,12 @@
                     search_depth: 'advanced',
                     max_results: 3
                 };
-
                 const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                if (!res.ok) {
-                    return 'search failed.';
-                }
-
+                if (!res.ok) return 'search failed.';
                 const data = await res.json();
                 let answer = data.answer || '';
                 if (!answer && data.results && data.results.length > 0) {
@@ -1137,22 +1298,18 @@
             }
         }
 
-        // ─── Handle AI chat with search ───
         async function handleAISend() {
             const message = aiInput.value.trim();
             if (!message) return;
-
             aiInput.value = '';
             aiInput.disabled = true;
             aiSendBtn.disabled = true;
-
-            addMessage(message, 'user');
+            addAIMessage(message, 'user');
             setStatus('thinking', 'thinking...');
             showTyping();
 
-            // Build conversation history
             const history = [];
-            const msgs = chatBox.querySelectorAll('.msg:not(.system):not(.searching)');
+            const msgs = aiChatBox.querySelectorAll('.msg:not(.system):not(.searching)');
             msgs.forEach(m => {
                 const isUser = m.classList.contains('user');
                 const isAi = m.classList.contains('ai');
@@ -1160,68 +1317,55 @@
                 if (isUser) history.push({ role: 'user', content: text });
                 else if (isAi) history.push({ role: 'assistant', content: text });
             });
-
             const fullMessages = [
                 { role: 'system', content: SYSTEM_PROMPT },
                 ...history,
                 { role: 'user', content: message }
             ];
 
-            let attempts = 0;
-            let finalContent = '';
-            let searchPerformed = false;
-
+            let attempts = 0,
+                finalContent = '',
+                searchPerformed = false;
             while (attempts < 2) {
                 attempts++;
                 const result = await callMistral(fullMessages);
-
                 if (!result.ok) {
                     removeTyping();
                     setStatus('error', 'error');
-                    addMessage(`⚠️ ${result.error}`, 'error');
+                    addAIMessage(`⚠️ ${result.error}`, 'error');
                     aiInput.disabled = false;
                     aiSendBtn.disabled = false;
                     aiInput.focus();
                     sound.play('error', 0.5);
                     return;
                 }
-
                 const content = result.content;
                 const searchMatch = content.match(/\[SEARCH:\s*([^\]]+)\]/);
-
                 if (searchMatch && !searchPerformed) {
                     const query = searchMatch[1].trim();
                     searchPerformed = true;
                     removeTyping();
                     setStatus('searching', 'searching...');
-                    addMessage(`🔍 searching: "${query}"`, 'searching');
+                    addAIMessage(`🔍 searching: "${query}"`, 'searching');
                     sound.play('scan-hit', 0.4);
-
                     const searchResult = await tavilySearch(query);
-
-                    fullMessages.push(
-                        { role: 'assistant', content: content },
-                        { role: 'user',
-                            content: `[search results for "${query}"]:\n${searchResult}\n\nnow use this information to answer the original question.` }
-                    );
-
+                    fullMessages.push({ role: 'assistant', content: content });
+                    fullMessages.push({ role: 'user',
+                        content: `[search results for "${query}"]:\n${searchResult}\n\nnow use this information to answer the original question.` });
                     showTyping();
                     continue;
                 }
-
                 finalContent = content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
                 break;
             }
 
             removeTyping();
-
             if (!finalContent) {
                 const lastResult = await callMistral(fullMessages);
-                if (lastResult.ok) {
-                    finalContent = lastResult.content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
-                } else {
+                if (lastResult.ok) finalContent = lastResult.content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
+                else {
                     setStatus('error', 'error');
-                    addMessage(`⚠️ ${lastResult.error}`, 'error');
+                    addAIMessage(`⚠️ ${lastResult.error}`, 'error');
                     aiInput.disabled = false;
                     aiSendBtn.disabled = false;
                     aiInput.focus();
@@ -1229,21 +1373,18 @@
                     return;
                 }
             }
-
             if (finalContent) {
                 setStatus('idle', 'idle');
-                addMessage(finalContent, 'ai');
+                addAIMessage(finalContent, 'ai');
             } else {
                 setStatus('idle', 'idle');
-                addMessage('🤷 i got nothing. try again.', 'ai');
+                addAIMessage('🤷 i got nothing. try again.', 'ai');
             }
-
             aiInput.disabled = false;
             aiSendBtn.disabled = false;
             aiInput.focus();
         }
 
-        // ─── Event listeners ───
         aiSendBtn.addEventListener('click', handleAISend);
         aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -1253,22 +1394,7 @@
             }
         });
 
-        // ─── Clock ───
-        const clockEl = document.getElementById('clock');
-
-        function tickClock() {
-            const d = new Date();
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            clockEl.textContent = hh + ':' + mm;
-        }
-        setInterval(tickClock, 10000);
-        tickClock();
-
-        // ─── block right-click ───
-        document.addEventListener('contextmenu', e => e.preventDefault());
-
-        // ─── Space canvas script (from original) ───
+        // ─── Space canvas script (original, slightly trimmed) ───
         (function() {
             const cv = document.getElementById('c');
             const cx = cv.getContext('2d');
