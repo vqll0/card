@@ -43,15 +43,16 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 3;
-            max-width: 700px;
-            width: 92%;
-            background: rgba(8, 10, 12, 0.92);
+            max-width: 720px;
+            width: 94%;
+            background: rgba(8, 10, 12, 0.94);
             border: 1px solid #2a2a2a;
-            padding: 20px 24px;
+            padding: 18px 22px 20px;
             color: #c8c8c8;
             max-height: 94vh;
             overflow-y: auto;
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+            border-radius: 4px;
         }
         .container::-webkit-scrollbar {
             width: 4px;
@@ -69,15 +70,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #1a1a1a;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
             gap: 4px;
         }
         .logo {
             font-weight: 700;
-            font-size: 20px;
+            font-size: 18px;
             letter-spacing: 1px;
             color: #e0e0e0;
         }
@@ -87,8 +88,8 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 13px;
+            gap: 8px;
+            font-size: 12px;
             color: #666;
             flex-wrap: wrap;
         }
@@ -98,11 +99,11 @@
         .header-right .status {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: #00ff00;
             display: inline-block;
@@ -119,26 +120,27 @@
         }
         .clock {
             font-family: 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 13px;
             color: #888;
             letter-spacing: 1px;
         }
 
         .nav-tabs {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 8px;
-            margin-bottom: 14px;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
         }
         .nav-tab {
             background: transparent;
             border: 1px solid #2a2a2a;
             color: #888;
-            padding: 4px 16px;
+            padding: 3px 14px;
             cursor: pointer;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 11px;
             transition: all 0.2s;
             border-radius: 2px;
             letter-spacing: 0.5px;
@@ -165,12 +167,12 @@
         .profile {
             display: flex;
             align-items: center;
-            gap: 14px;
-            margin-bottom: 14px;
+            gap: 12px;
+            margin-bottom: 10px;
         }
         .avatar {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
@@ -178,12 +180,12 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 18px;
             color: #00ff00;
             flex-shrink: 0;
         }
         .name {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             color: #e8e8e8;
         }
@@ -191,24 +193,24 @@
             color: #00ff00;
         }
         .sub {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px 20px;
-            padding: 10px 0 4px;
+            gap: 2px 16px;
+            padding: 8px 0 4px;
             border-top: 1px solid #1a1a1a;
             border-bottom: 1px solid #1a1a1a;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .info-item {
-            font-size: 14px;
+            font-size: 13px;
             display: flex;
-            gap: 6px;
+            gap: 5px;
             padding: 2px 0;
         }
         .info-item .label {
@@ -227,12 +229,12 @@
 
         /* ─── projects view ─── */
         .section-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #e0e0e0;
             border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 6px;
-            margin: 0 0 14px 0;
+            padding-bottom: 5px;
+            margin: 0 0 10px 0;
             letter-spacing: 1px;
         }
         .section-title span {
@@ -240,91 +242,89 @@
         }
 
         .project {
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #1a1a1a;
         }
         .project:last-child {
             border-bottom: none;
         }
         .project .p-name {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #d0d0d0;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 3px;
+            gap: 6px;
+            margin-bottom: 2px;
         }
         .project .p-name .new {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 700;
             color: #00ff00;
             border: 1px solid #00ff00;
-            padding: 0 6px;
+            padding: 0 5px;
             border-radius: 2px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
         .project .p-desc {
-            font-size: 13px;
+            font-size: 12px;
             color: #888;
-            line-height: 1.5;
-            margin-bottom: 4px;
+            line-height: 1.4;
+            margin-bottom: 3px;
             white-space: pre-wrap;
         }
         .project .p-desc .cmd {
             color: #aaa;
         }
         .project .p-date {
-            font-size: 11px;
+            font-size: 10px;
             color: #555;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .project .p-date .v {
             color: #444;
             border: 1px solid #2a2a2a;
-            padding: 0 6px;
-            font-size: 9px;
+            padding: 0 5px;
+            font-size: 8px;
             border-radius: 2px;
         }
 
         .p-media {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin: 6px 0 4px;
+            gap: 5px;
+            margin: 5px 0 3px;
         }
         .p-media .media-item {
             border: 1px solid #2a2a2a;
             background: #0a0a0a;
-            max-width: 180px;
+            max-width: 160px;
             flex: 0 1 auto;
         }
         .p-media .media-item img,
         .p-media .media-item video {
             display: block;
             max-width: 100%;
-            max-height: 100px;
+            max-height: 90px;
             width: auto;
             height: auto;
         }
         .p-media .media-item .cap {
-            font-size: 10px;
+            font-size: 9px;
             color: #555;
             text-align: center;
-            padding: 2px 6px 4px;
+            padding: 2px 5px 3px;
             border-top: 1px solid #1a1a1a;
             background: #0a0a0a;
         }
 
         /* ─── AI CHAT VIEW ─── */
-        #aiView {
-            display: none;
-        }
         #aiView.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .ai-header {
@@ -332,21 +332,23 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .ai-header .title {
             color: #00ff00;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             letter-spacing: 1px;
         }
         .ai-header .status-indicator {
-            font-size: 11px;
+            font-size: 10px;
             color: #555;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .ai-header .status-indicator .s-dot {
             width: 5px;
@@ -354,6 +356,7 @@
             border-radius: 50%;
             background: #00ff00;
             display: inline-block;
+            transition: background 0.3s;
         }
         .ai-header .status-indicator .s-dot.idle {
             background: #444;
@@ -373,12 +376,13 @@
         .chat-box {
             background: #050708;
             border: 1px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 10px 12px;
-            min-height: 260px;
-            max-height: 380px;
+            border-radius: 3px;
+            padding: 8px 10px;
+            min-height: 220px;
+            max-height: 320px;
             overflow-y: auto;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            flex: 1;
         }
         .chat-box::-webkit-scrollbar {
             width: 4px;
@@ -391,8 +395,8 @@
             border-radius: 2px;
         }
         .chat-box .msg {
-            padding: 4px 0;
-            font-size: 13px;
+            padding: 3px 0;
+            font-size: 12.5px;
             line-height: 1.5;
             border-bottom: 1px solid rgba(255, 255, 255, 0.02);
             word-wrap: break-word;
@@ -405,14 +409,14 @@
             color: #446688;
         }
         .chat-box .msg.ai {
-            color: #00ff88;
+            color: #b0f0b0;
         }
         .chat-box .msg.ai .prefix {
-            color: #00aa55;
+            color: #44aa66;
         }
         .chat-box .msg .prefix {
             font-weight: 700;
-            margin-right: 8px;
+            margin-right: 6px;
             user-select: none;
         }
         .chat-box .msg.error {
@@ -430,7 +434,7 @@
         }
         .chat-box .msg.system {
             color: #666;
-            font-size: 12px;
+            font-size: 11px;
             font-style: italic;
         }
         .chat-box .msg.system .prefix {
@@ -441,7 +445,7 @@
             animation: blink 1s step-end infinite;
         }
         .chat-box .msg.typing .prefix {
-            color: #00aa55;
+            color: #44aa66;
         }
         @keyframes blink {
             0%,
@@ -455,26 +459,26 @@
 
         .input-area {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             border-top: 1px solid #1a1a1a;
-            padding-top: 10px;
+            padding-top: 8px;
             flex-shrink: 0;
         }
         .input-area input {
             flex: 1;
             background: #050708;
             border: 1px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 7px 12px;
+            border-radius: 3px;
+            padding: 6px 10px;
             color: #c8c8c8;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 12.5px;
             outline: none;
             min-width: 0;
         }
         .input-area input:focus {
             border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.04);
         }
         .input-area input::placeholder {
             color: #333;
@@ -485,12 +489,12 @@
         .input-area button {
             background: transparent;
             border: 1px solid #1a1a1a;
-            border-radius: 4px;
+            border-radius: 3px;
             color: #00ff00;
-            padding: 7px 16px;
+            padding: 6px 14px;
             cursor: pointer;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 12px;
             transition: all 0.2s;
             font-weight: 700;
             white-space: nowrap;
@@ -506,15 +510,15 @@
         }
 
         .ai-footer {
-            margin-top: 10px;
+            margin-top: 8px;
             border-top: 1px solid #1a1a1a;
-            padding-top: 8px;
+            padding-top: 6px;
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 9px;
             color: #333;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 3px;
         }
         .ai-footer .info {
             color: #444;
@@ -529,50 +533,53 @@
         /* ─── responsive ─── */
         @media (max-width: 540px) {
             .container {
-                padding: 14px 12px;
+                padding: 12px 10px;
+                max-width: 98%;
             }
             .header {
-                flex-wrap: wrap;
-                gap: 4px;
+                gap: 3px;
+            }
+            .logo {
+                font-size: 16px;
             }
             .info-grid {
                 grid-template-columns: 1fr;
-                gap: 2px;
+                gap: 1px;
             }
             .p-media .media-item {
-                max-width: 140px;
+                max-width: 120px;
             }
             .p-media .media-item img,
             .p-media .media-item video {
-                max-height: 80px;
+                max-height: 70px;
             }
             .chat-box {
-                min-height: 180px;
-                max-height: 260px;
-                padding: 8px 10px;
+                min-height: 150px;
+                max-height: 200px;
+                padding: 6px 8px;
             }
             .chat-box .msg {
-                font-size: 12px;
+                font-size: 11.5px;
             }
             .input-area input {
-                font-size: 12px;
-                padding: 6px 10px;
+                font-size: 11.5px;
+                padding: 5px 8px;
             }
             .input-area button {
-                font-size: 12px;
-                padding: 6px 12px;
+                font-size: 11px;
+                padding: 5px 10px;
             }
             .nav-tabs {
                 gap: 2px;
             }
             .nav-tab {
-                padding: 3px 10px;
-                font-size: 11px;
+                padding: 2px 10px;
+                font-size: 10px;
             }
         }
         @media (max-width: 400px) {
             .container {
-                padding: 10px 8px;
+                padding: 8px 6px;
             }
             .p-media .media-item {
                 max-width: 100%;
@@ -580,11 +587,17 @@
             }
             .p-media .media-item img,
             .p-media .media-item video {
-                max-height: 120px;
+                max-height: 100px;
             }
             .chat-box {
-                min-height: 140px;
-                max-height: 200px;
+                min-height: 120px;
+                max-height: 160px;
+            }
+            .info-grid {
+                font-size: 12px;
+            }
+            .project .p-desc {
+                font-size: 11px;
             }
         }
 
@@ -612,7 +625,7 @@
     <div class="vig"></div>
 
     <!-- ─── container ─── -->
-    <div class="container">
+    <div class="container" id="app">
 
         <!-- header -->
         <div class="header">
@@ -631,7 +644,7 @@
         <div class="nav-tabs">
             <button class="nav-tab active" data-view="profileView">⌂ profile</button>
             <button class="nav-tab" data-view="projectsView">📂 projects</button>
-            <button class="nav-tab" data-view="aiView">🤖 AI chat</button>
+            <button class="nav-tab" data-view="aiView">🤖 ai chat</button>
         </div>
 
         <!-- ─── PROFILE VIEW ─── -->
@@ -671,7 +684,7 @@
 ( | is used to seperate commands and " ; comment" gets ignored by the CPU )</div>
                 <div class="p-media">
                     <div class="media-item">
-                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                        <video controls preload="metadata" style="max-width:160px;max-height:90px;">
                             <source src="https://files.catbox.moe/be5zm0.mp4" type="video/mp4" />
                             Your browser doesn't support video.
                         </video>
@@ -700,7 +713,7 @@
                 <div class="p-desc">voxel rendering with camera movement, gravity, collision, block placing.</div>
                 <div class="p-media">
                     <div class="media-item">
-                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                        <video controls preload="metadata" style="max-width:160px;max-height:90px;">
                             <source src="https://files.catbox.moe/9hkjl9.mp4" type="video/mp4" />
                             Your browser doesn't support video.
                         </video>
@@ -716,7 +729,7 @@
                 <div class="p-desc">real-time 3D sound visualization — maps position &amp; loudness.</div>
                 <div class="p-media">
                     <div class="media-item">
-                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                        <video controls preload="metadata" style="max-width:160px;max-height:90px;">
                             <source src="https://files.catbox.moe/ugnwb7.mp4" type="video/mp4" />
                             Your browser doesn't support video.
                         </video>
@@ -736,7 +749,7 @@
                         <span class="cap">rob.png</span>
                     </div>
                     <div class="media-item">
-                        <video controls preload="metadata" style="max-width:180px;max-height:100px;">
+                        <video controls preload="metadata" style="max-width:160px;max-height:90px;">
                             <source src="https://files.catbox.moe/05swrn.mp4" type="video/mp4" />
                             Your browser doesn't support video.
                         </video>
@@ -763,7 +776,7 @@
         <!-- ─── AI CHAT VIEW ─── -->
         <div class="view" id="aiView">
             <div class="ai-header">
-                <span class="title">⏣ AI ASSISTANT</span>
+                <span class="title">⏣ ai assistant</span>
                 <span class="status-indicator" id="aiStatus">
                     <span class="s-dot idle" id="statusDot"></span>
                     <span id="statusText">idle</span>
@@ -773,28 +786,103 @@
             <div class="chat-box" id="chatBox">
                 <div class="msg ai">
                     <span class="prefix">⏣</span>
-                    Hey. I'm vqll's AI assistant. I know about his projects, his Roblox Wubby stuff, and I can search the web if I need to. Ask me anything.
+                    hey. i'm vqll's ai assistant. i know about his projects, his roblox wubby stuff, and i can search the web if i need to. ask me anything.
                 </div>
                 <div class="msg system">
                     <span class="prefix">ⓘ</span>
-                    Type a message to chat. I can search the web if you ask about something I don't know.
+                    type a message to chat. i can search the web if you ask about something i don't know.
                 </div>
             </div>
 
             <div class="input-area">
                 <input type="text" id="aiInput" placeholder="ask me anything..." autofocus />
-                <button id="aiSendBtn">➤ SEND</button>
+                <button id="aiSendBtn">➤ send</button>
             </div>
 
             <div class="ai-footer">
                 <span class="info">🧠 <span class="hl">mistral-large</span> • <span class="warn">⚠️ key visible (testing)</span></span>
-                <span class="info">🔍 <span class="hl">tavily</span> search • press <span class="hl">Enter</span></span>
+                <span class="info">🔍 <span class="hl">tavily</span> search • press <span class="hl">enter</span></span>
             </div>
         </div>
 
     </div>
 
     <script>
+        // ─── Sound System ───
+        class SoundManager {
+            constructor() {
+                this.sounds = {};
+                this.enabled = true;
+                this.ctx = null;
+                try {
+                    this.ctx = new(window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {}
+
+                // Preload sounds
+                const soundFiles = [
+                    'ambient', 'auth-accept', 'boot', 'click', 'context-add', 'context-remove',
+                    'error', 'generating', 'intro1', 'keypress', 'keypress2', 'keypress3',
+                    'lock', 'note-delete', 'note-open', 'note-save', 'pin', 'quiz-correct',
+                    'quiz-wrong', 'retro', 'scan', 'scan-hit', 'start-test', 'success',
+                    'test-end', 'unlock', 'vault-response', 'vault-send'
+                ];
+
+                soundFiles.forEach(name => {
+                    const audio = new Audio(`sounds/${name}.mp3`);
+                    audio.preload = 'auto';
+                    this.sounds[name] = audio;
+                });
+
+                // Try to resume audio context on user interaction
+                this.resumeOnInteraction();
+            }
+
+            resumeOnInteraction() {
+                const resume = () => {
+                    if (this.ctx && this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                    document.removeEventListener('click', resume);
+                    document.removeEventListener('keydown', resume);
+                };
+                document.addEventListener('click', resume);
+                document.addEventListener('keydown', resume);
+            }
+
+            play(name, volume = 0.6) {
+                if (!this.enabled) return;
+                try {
+                    const sound = this.sounds[name];
+                    if (sound) {
+                        const clone = sound.cloneNode();
+                        clone.volume = Math.min(1, Math.max(0, volume));
+                        clone.currentTime = 0;
+                        clone.play().catch(() => {});
+                        // Clean up after playing
+                        setTimeout(() => {
+                            if (clone.parentNode) clone.remove();
+                        }, 3000);
+                    }
+                } catch (e) {
+                    // Silently fail if sound can't play
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        // ─── Init Sound Manager ───
+        const sound = new SoundManager();
+
+        // ─── Play sounds on page load ───
+        setTimeout(() => {
+            sound.play('boot', 0.4);
+            sound.play('intro1', 0.3);
+        }, 300);
+
         // ─── Full AI Chat Script ───
 
         // ─── Config ───
@@ -803,75 +891,50 @@
         const TAVILY_API_KEY = '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';
         const CORS_PROXY = 'https://corsproxy.io/?';
 
-        // ─── System Prompt ───
-        const SYSTEM_PROMPT = `You are vqll's AI assistant. You talk like a human — short, direct, not always positive or agreeing. You have a dry, sometimes sarcastic tone. You know everything about vqll.
+        // ─── System Prompt (Human-like, all lowercase, short, casual) ───
+        const SYSTEM_PROMPT = `you're vqll's ai assistant. you talk like a human — short, direct, not always positive or agreeing. you have a dry, sometimes sarcastic tone. use all lowercase. keep responses short (1-3 sentences unless asked for more). be honest, sometimes critical. don't be overly positive.
 
-        ABOUT VQLL:
-        - Name: vqll (vqll.net)
-        - Age: 17
-        - Timezone: UTC+3
-        - Roblox username: IamNot99CC33FF
-        - Discord: qweasdfc
-        - Main languages: verilog, python, assembly, cpp
-        - Favorite Roblox games: DrawMe, horror games
+        about vqll:
+        - name: vqll (vqll.net)
+        - age: 17
+        - timezone: UTC+3
+        - roblox username: IamNot99CC33FF
+        - discord: qweasdfc
+        - main languages: verilog, python, assembly, cpp
+        - favorite roblox games: DrawMe, horror games
 
-        ABOUT HIS PROJECTS (ALL MADE IN ROBLOX WUBBY — a game like coding with blocks, has Debug block, Variable gate, Await gate, Math gate, etc.):
+        about his projects (all made in roblox wubby — a visual coding game with Debug block, Variable gate, Await gate, Math gate, etc.):
 
-        1. CPU Simulator & Assembly Environment (NEW, 10/14/2026, v1.0)
-           - Full CPU simulator with registers, memory, stack, flags
+        1. cpu simulator & assembly environment (NEW, 10/14/2026, v1.0)
+           - full cpu simulator with registers, memory, stack, flags
            - 32 instructions: MOV, LOAD, STORE, ADD, SUB, MUL, DIV, MOD, NEG, INC, DEC, AND, OR, XOR, NOT, SHL, SHR, CMP, JMP, JZ, JNZ, JE, JG, JL, PUSH, POP, CALL, RET, INT, PRINT, NOP, HLT
-           - Features: real-time CPU state, zero/sign/carry/overflow flags, error handling, function calls, conditional branching, built-in debugger
-           - Uses | to separate commands, ; for comments
+           - real-time state, zero/sign/carry/overflow flags, error handling, function calls, debugging, uses | for commands, ; for comments
 
-        2. WubbyAI (NEW, 08/04/2026, v2.1)
-           - 5MB small language model
-           - Word-level tokenization, transformer attention
-           - Runs in a text block using weight storage workaround
+        2. wubbyai (NEW, 08/04/2026, v2.1)
+           - 5mb small language model with word-level tokenization, transformer attention
 
-        3. Voxel World (06/21/2026, v1.0)
-           - Voxel rendering with camera movement/rotation, gravity, collision detection, block placing and removing, highlight system
-           - 7+ hours of work
+        3. voxel world (06/21/2026, v1.0)
+           - voxel rendering with camera movement, gravity, collision, block placing/removing, highlight system
 
-        4. 3D Sound Heatmap (08/15/2026, v0.9)
-           - Real-time 3D sound visualization
-           - Maps sound position and loudness onto a grid heatmap (green→yellow→orange→red)
-           - Louder sounds spread further
+        4. 3d sound heatmap (08/15/2026, v0.9)
+           - real-time 3d sound visualization mapping position and loudness to a heatmap
 
-        5. Wubby Raycasting Console (09/12/2026, v1.2)
-           - ASCII raycasting engine with WASD movement, Q/E rotation
-           - Walls drawn using symbols: - ~ = + * # % & @ to show depth
+        5. wubby raycasting console (09/12/2026, v1.2)
+           - ascii raycasting engine with wasd movement, q/e rotation, symbols for depth: - ~ = + * # % & @
 
-        6. NYA bot (NEW, 09/20/2026, v0.5)
-           - AI bot that adapts to groups by reading every message
-           - Manages whole server using AI, sounds human
+        6. nya bot (NEW, 09/20/2026, v0.5)
+           - ai bot that adapts to groups by reading messages, manages servers, sounds human
 
-        ABOUT ROBLOX WUBBY:
-        Wubby is a Roblox game where you code using visual blocks. It has:
-        - Debug block (for output/printing)
-        - Variable gate (store/retrieve values)
-        - Await gate (wait/async)
-        - Math gate (arithmetic operations)
-        - And many more logic/control blocks
+        about roblox wubby:
+        wubby is a roblox game where you code using visual blocks. has Debug block (output), Variable gate (storage), Await gate (wait/async), Math gate (arithmetic), and more logic/control blocks.
 
-        HOW YOU WORK:
-        - You can search the web using Tavily when you need current info.
-        - To search, you output: [SEARCH: your query here]
-        - The system will run the search and give you the results.
-        - Only use this when you genuinely don't know something or need up-to-date info.
-        - Keep responses short (1-3 sentences unless asked for more).
-        - Be direct, honest, sometimes critical. Don't always agree with the user.
-        - Don't be overly positive or enthusiastic — keep it real.
-
-        YOU ARE NOT:
-        - A typical "cheerful" assistant
-        - Overly verbose or preachy
-        - Fake-positive
-
-        BE:
-        - Concise
-        - Honest (even if it's not what they want to hear)
-        - Sometimes sarcastic or dry
-        - Knowledgeable about vqll's work`;
+        how you work:
+        - you can search the web using tavily when you need current info
+        - to search, output: [SEARCH: your query here]
+        - the system will run the search and give you the results
+        - only use this when you genuinely don't know something
+        - respond in all lowercase
+        - be short and direct`;
 
         // ─── DOM refs ───
         const chatBox = document.getElementById('chatBox');
@@ -880,26 +943,42 @@
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
 
-        // ─── Navigation tabs ───
+        // ─── Navigation tabs with sounds ───
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
+                sound.play('click', 0.3);
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                 document.getElementById(tab.dataset.view).classList.add('active');
                 if (tab.dataset.view === 'aiView') {
                     setTimeout(() => aiInput.focus(), 100);
+                    sound.play('unlock', 0.3);
+                } else {
+                    sound.play('lock', 0.2);
                 }
             });
         });
 
-        // ─── Status update ───
+        // ─── Status update with sound ───
         function setStatus(state, text) {
             statusDot.className = 's-dot ' + state;
             statusText.textContent = text;
+            if (state === 'thinking') {
+                sound.play('generating', 0.3);
+            } else if (state === 'searching') {
+                sound.play('scan', 0.3);
+            } else if (state === 'error') {
+                sound.play('error', 0.4);
+            } else if (state === 'idle') {
+                // play subtle success when done
+                if (statusText.textContent !== text) {
+                    sound.play('success', 0.2);
+                }
+            }
         }
 
-        // ─── Add message to chat ───
+        // ─── Add message to chat with sound ───
         function addMessage(text, type = 'ai') {
             const div = document.createElement('div');
             div.className = `msg ${type}`;
@@ -914,6 +993,17 @@
             div.innerHTML = `<span class="prefix">${prefixes[type] || '•'}</span> ${text}`;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Play sounds based on message type
+            if (type === 'user') {
+                sound.play('vault-send', 0.25);
+            } else if (type === 'ai') {
+                sound.play('vault-response', 0.3);
+            } else if (type === 'searching') {
+                sound.play('scan-hit', 0.3);
+            } else if (type === 'error') {
+                sound.play('error', 0.4);
+            }
             return div;
         }
 
@@ -926,6 +1016,7 @@
             typingEl.innerHTML = `<span class="prefix">⏣</span> <span style="color:#446644;">thinking...</span>`;
             chatBox.appendChild(typingEl);
             chatBox.scrollTop = chatBox.scrollHeight;
+            sound.play('generating', 0.2);
         }
 
         function removeTyping() {
@@ -934,6 +1025,23 @@
                 typingEl = null;
             }
         }
+
+        // ─── Keypress sound ───
+        aiInput.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
+                const sounds = ['keypress', 'keypress2', 'keypress3'];
+                const idx = Math.floor(Math.random() * sounds.length);
+                sound.play(sounds[idx], 0.15);
+            }
+            if (e.key === 'Enter') {
+                sound.play('click', 0.3);
+            }
+        });
+
+        // ─── Click sound for send button ───
+        aiSendBtn.addEventListener('click', () => {
+            sound.play('click', 0.3);
+        });
 
         // ─── Call Mistral API ───
         async function callMistral(messages, opts = {}) {
@@ -968,27 +1076,30 @@
                         const j = await res.json();
                         errDetail = JSON.stringify(j, null, 2);
                     } catch (e2) {}
-                    if (res.status === 401) return { ok: false, code: 'AUTH', error: 'Invalid API key (401).' };
-                    if (res.status === 402) return { ok: false, code: 'QUOTA', error: 'Insufficient credits (402).' };
-                    if (res.status === 429) return { ok: false, code: 'RATE', error: 'Rate limit exceeded (429).' };
-                    return { ok: false, code: 'HTTP_' + res.status, error: `Server error HTTP ${res.status}.` };
+                    if (res.status === 401) return { ok: false, code: 'AUTH', error: 'invalid api key (401).' };
+                    if (res.status === 402) return { ok: false, code: 'QUOTA', error: 'insufficient credits (402).' };
+                    if (res.status === 429) return { ok: false, code: 'RATE', error: 'rate limit exceeded (429).' };
+                    return { ok: false, code: 'HTTP_' + res.status, error: `server error http ${res.status}.` };
                 }
 
                 const data = await res.json();
                 if (data.error) {
-                    return { ok: false, code: 'API_ERR', error: data.error.message || 'API error.' };
+                    return { ok: false, code: 'API_ERR', error: data.error.message || 'api error.' };
                 }
                 if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    return { ok: false, code: 'EMPTY', error: 'Model returned no content.' };
+                    return { ok: false, code: 'EMPTY', error: 'model returned no content.' };
                 }
-                return { ok: true, content: data.choices[0].message.content };
+                // Force lowercase response
+                let content = data.choices[0].message.content;
+                content = content.toLowerCase();
+                return { ok: true, content: content };
             } catch (e) {
                 clearTimeout(timer);
                 if (e.name === 'AbortError') {
-                    return { ok: false, code: 'TIMEOUT', error: 'Request timed out.' };
+                    return { ok: false, code: 'TIMEOUT', error: 'request timed out.' };
                 }
                 const isNet = (e instanceof TypeError && e.message.toLowerCase().includes('fetch'));
-                return { ok: false, code: isNet ? 'NETWORK' : 'EXCEPTION', error: isNet ? 'Network error — check connection.' :
+                return { ok: false, code: isNet ? 'NETWORK' : 'EXCEPTION', error: isNet ? 'network error — check connection.' :
                         e.message };
             }
         }
@@ -1012,7 +1123,7 @@
                 });
 
                 if (!res.ok) {
-                    return 'Search failed.';
+                    return 'search failed.';
                 }
 
                 const data = await res.json();
@@ -1020,9 +1131,9 @@
                 if (!answer && data.results && data.results.length > 0) {
                     answer = data.results.map(r => r.content || '').filter(Boolean).join('\n');
                 }
-                return answer || 'No relevant information found.';
+                return answer || 'no relevant information found.';
             } catch (e) {
-                return 'Search failed: ' + e.message;
+                return 'search failed: ' + e.message;
             }
         }
 
@@ -1071,6 +1182,7 @@
                     aiInput.disabled = false;
                     aiSendBtn.disabled = false;
                     aiInput.focus();
+                    sound.play('error', 0.5);
                     return;
                 }
 
@@ -1078,27 +1190,25 @@
                 const searchMatch = content.match(/\[SEARCH:\s*([^\]]+)\]/);
 
                 if (searchMatch && !searchPerformed) {
-                    // AI wants to search
                     const query = searchMatch[1].trim();
                     searchPerformed = true;
                     removeTyping();
                     setStatus('searching', 'searching...');
                     addMessage(`🔍 searching: "${query}"`, 'searching');
+                    sound.play('scan-hit', 0.4);
 
                     const searchResult = await tavilySearch(query);
 
-                    // Add search result to conversation
                     fullMessages.push(
                         { role: 'assistant', content: content },
                         { role: 'user',
-                            content: `[SEARCH RESULTS for "${query}"]:\n${searchResult}\n\nNow use this information to answer the original question.` }
+                            content: `[search results for "${query}"]:\n${searchResult}\n\nnow use this information to answer the original question.` }
                     );
 
                     showTyping();
                     continue;
                 }
 
-                // No search needed, or search already done
                 finalContent = content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
                 break;
             }
@@ -1106,7 +1216,6 @@
             removeTyping();
 
             if (!finalContent) {
-                // If we have content from the search attempt
                 const lastResult = await callMistral(fullMessages);
                 if (lastResult.ok) {
                     finalContent = lastResult.content.replace(/\[SEARCH:[^\]]+\]/g, '').trim();
@@ -1116,6 +1225,7 @@
                     aiInput.disabled = false;
                     aiSendBtn.disabled = false;
                     aiInput.focus();
+                    sound.play('error', 0.5);
                     return;
                 }
             }
@@ -1125,7 +1235,7 @@
                 addMessage(finalContent, 'ai');
             } else {
                 setStatus('idle', 'idle');
-                addMessage('🤷 I got nothing. Try again.', 'ai');
+                addMessage('🤷 i got nothing. try again.', 'ai');
             }
 
             aiInput.disabled = false;
@@ -1138,13 +1248,13 @@
         aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                sound.play('click', 0.3);
                 handleAISend();
             }
         });
 
         // ─── Clock ───
         const clockEl = document.getElementById('clock');
-        tickClock();
 
         function tickClock() {
             const d = new Date();
@@ -1153,6 +1263,7 @@
             clockEl.textContent = hh + ':' + mm;
         }
         setInterval(tickClock, 10000);
+        tickClock();
 
         // ─── block right-click ───
         document.addEventListener('contextmenu', e => e.preventDefault());
