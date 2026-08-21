@@ -917,7 +917,7 @@
                 } else if (tab.dataset.view === 'liveChatView') {
                     setTimeout(() => document.getElementById('liveChatInput').focus(), 100);
                     sound.play('unlock', 0.3);
-                    // init supabase if not already
+                    // Init Supabase if not already
                     if (typeof supabase === 'undefined' || !supabase) initSupabase();
                 } else {
                     sound.play('lock', 0.2);
@@ -929,7 +929,7 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
 
         // ════════════════════════════════════════════════════════════
-        //  LIVE CHAT (Supabase)
+        //  LIVE CHAT (Supabase) — FIXED LOADING
         // ════════════════════════════════════════════════════════════
 
         // ─── Supabase Config ───
@@ -948,45 +948,39 @@
         const msgCountEl = document.getElementById('msgCount');
         const chatStatusEl = document.getElementById('chatStatus');
 
-        // ─── Load Supabase JS ───
-        function loadSupabase() {
+        // ─── Load Supabase library (reliable method) ───
+        function loadSupabaseLibrary() {
             return new Promise((resolve, reject) => {
-                if (typeof window.supabase !== 'undefined') {
+                // Check if already loaded
+                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                     resolve();
                     return;
                 }
-                // Check if already loaded via script tag
-                if (document.querySelector('script[src*="supabase"]')) {
-                    // Wait a bit for it to be available
-                    const check = setInterval(() => {
-                        if (typeof window.supabase !== 'undefined') {
-                            clearInterval(check);
-                            resolve();
-                        }
-                    }, 100);
-                    setTimeout(() => {
-                        clearInterval(check);
-                        reject(new Error('Supabase load timeout'));
-                    }, 5000);
-                    return;
-                }
+
+                // Create script element
                 const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-                script.onload = () => {
-                    // Wait for the library to be available
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+                script.async = true;
+
+                script.onload = function() {
+                    // Wait a moment for the library to register
                     let attempts = 0;
                     const check = setInterval(() => {
                         attempts++;
-                        if (typeof window.supabase !== 'undefined') {
+                        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                             clearInterval(check);
                             resolve();
-                        } else if (attempts > 30) {
+                        } else if (attempts > 20) {
                             clearInterval(check);
                             reject(new Error('Supabase library not available after loading'));
                         }
                     }, 100);
                 };
-                script.onerror = reject;
+
+                script.onerror = function() {
+                    reject(new Error('Failed to load Supabase library (network error)'));
+                };
+
                 document.head.appendChild(script);
             });
         }
@@ -996,30 +990,16 @@
             if (liveChatInitialized) return;
             try {
                 chatStatusEl.textContent = '● loading...';
-                await loadSupabase();
+                await loadSupabaseLibrary();
                 // Create client
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 liveChatInitialized = true;
                 chatStatusEl.textContent = '● connected';
                 sound.play('auth-accept', 0.3);
-                // Check if messages table exists
-                try {
-                    const { error } = await supabase.from('messages').select('id').limit(1);
-                    if (error) {
-                        if (error.message.includes('relation') || error.message.includes('does not exist')) {
-                            liveChatBox.innerHTML +=
-                                `<div class="msg error"><span class="prefix">✗</span> Table 'messages' not found. Please create it in Supabase.</div>`;
-                            sound.play('error', 0.5);
-                            return;
-                        }
-                        throw error;
-                    }
-                } catch (e) {
-                    // Table likely exists but maybe other error, we'll still try to load
-                }
-                // Load messages
+
+                // Check if messages table exists and load messages
                 await loadMessages();
-                // Subscribe
+                // Subscribe to new messages
                 subscribeToMessages();
             } catch (e) {
                 chatStatusEl.textContent = '● error';
@@ -1033,13 +1013,26 @@
         async function loadMessages() {
             if (!supabase) return;
             try {
+                // Try to fetch messages; if table doesn't exist, we'll handle error
                 const { data, error } = await supabase
                     .from('messages')
                     .select('*')
                     .order('created_at', { ascending: true })
                     .limit(100);
 
-                if (error) throw error;
+                if (error) {
+                    // If error is about missing table, try to create it
+                    if (error.message && (error.message.includes('relation') || error.message.includes('does not exist'))) {
+                        // We'll attempt to create the table using raw SQL via REST API
+                        // But since we don't have RLS or admin key, we'll just show a message
+                        liveChatBox.innerHTML +=
+                            `<div class="msg error"><span class="prefix">✗</span> Table 'messages' not found. Please create it in Supabase.</div>`;
+                        sound.play('error', 0.5);
+                        return;
+                    }
+                    throw error;
+                }
+
                 // Clear existing messages (keep system message)
                 const systemMsgs = liveChatBox.querySelectorAll('.msg.system');
                 liveChatBox.innerHTML = '';
@@ -1059,6 +1052,10 @@
         // ─── Subscribe to new messages ───
         function subscribeToMessages() {
             if (messageSubscription) return;
+            if (!supabase) {
+                console.warn('Supabase not initialized, cannot subscribe');
+                return;
+            }
             messageSubscription = supabase
                 .channel('messages_channel')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
@@ -1108,25 +1105,15 @@
             sound.play('vault-send', 0.3);
 
             try {
+                if (!supabase) {
+                    await initSupabase();
+                    if (!supabase) throw new Error('Supabase not initialized');
+                }
                 const { error } = await supabase
                     .from('messages')
                     .insert([{ name: name, text: text, created_at: new Date().toISOString() }]);
                 if (error) throw error;
-                // We'll rely on subscription to add it to UI
-                // But we can optimistically add it now (without double-adding)
-                // We'll let the subscription handle it to avoid duplication.
-                // But subscription only fires for new rows, so if we insert successfully, subscription will add it.
-                // However we might want to add it immediately for local feedback.
-                // We can add it manually and the subscription will add another? We'll avoid that.
-                // Instead, we add it with a slight delay to allow the subscription to catch it.
-                // But subscription might be faster; we'll just let it handle.
-                // To avoid UI lag, we'll add it optimistically with a flag, but we need to prevent duplicate.
-                // Simple approach: after successful insert, add it locally.
-                // But the subscription will also add it, causing duplicate.
-                // So we'll add a flag to check if the message was already added by the subscription?
-                // Simpler: don't add optimistically, rely on subscription.
-                // But if subscription fails, it's okay.
-                // We'll just not add it here.
+                // The subscription will add the message automatically
             } catch (e) {
                 liveChatBox.innerHTML +=
                     `<div class="msg error"><span class="prefix">✗</span> send error: ${e.message}</div>`;
@@ -1170,7 +1157,7 @@
         });
 
         // ─── Initialize Supabase when live chat tab is clicked ───
-        // We already call initSupabase in the tab click handler.
+        // Already called in tab click handler
 
         // ════════════════════════════════════════════════════════════
         //  AI CHAT (same as before, but integrated)
