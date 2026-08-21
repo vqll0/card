@@ -1848,7 +1848,7 @@
                 }
                 const { error } = await supabase
                     .from('messages')
-                    .insert([{ name: name, text: text, created_at: new Date().toISOString() }]);
+                    .insert([{ username: name, text: text, created_at: new Date().toISOString() }]);
                 if (error) throw error;
                 // Subscription will add it
             } catch (e) {
