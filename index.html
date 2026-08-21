@@ -1717,228 +1717,382 @@
     </script>
 
     <!-- ─── ESM Module for Supabase ─── -->
-    <script type="module">
-        // ─── Supabase Config ───
-        const SUPABASE_URL = "https://pluxhbpagpeditgcdjja.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_rV8EhkTQTMZy0vvDhJdb3w_Tittpwmk";
+<script type="module">
+    // ─── Supabase Config ───
+    const SUPABASE_URL = "https://pluxhbpagpeditgcdjja.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_rV8EhkTQTMZy0vvDhJdb3w_Tittpwmk";
 
-        // Import the Supabase client
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    // ─── Import Supabase ───
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log("Supabase initialized:", supabase);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ─── Expose supabase to global scope for other functions ───
-        window.__supabase = supabase;
-        window.__supabaseReady = true;
+    console.log("Supabase initialized:", supabase);
 
-        // ─── DOM refs for live chat ───
-        const liveChatBox = document.getElementById('liveChatBox');
-        const liveChatInput = document.getElementById('liveChatInput');
-        const liveChatSendBtn = document.getElementById('liveChatSendBtn');
-        const chatNameInput = document.getElementById('chatNameInput');
-        const msgCountEl = document.getElementById('msgCount');
-        const chatStatusEl = document.getElementById('chatStatus');
+    // Optional: expose globally
+    window.__supabase = supabase;
+    window.__supabaseReady = true;
 
-        let messageSubscription = null;
-        let liveChatInitialized = false;
-        let pendingMessages = [];
 
-        // ─── Add message to chat UI ───
-        function addChatMessage(name, text, isLocal) {
-            const type = isLocal ? 'local' : 'remote';
-            const prefix = isLocal ? '❯' : '⏣';
-            const div = document.createElement('div');
-            div.className = `msg ${type}`;
-            div.innerHTML = `<span class="prefix">${prefix}</span> <span style="color:#888;">${name}:</span> ${text}`;
-            liveChatBox.appendChild(div);
-            liveChatBox.scrollTop = liveChatBox.scrollHeight;
-            if (!isLocal) {
-                sound.play('vault-response', 0.3);
+    // ─── DOM refs ───
+    const liveChatBox = document.getElementById("liveChatBox");
+    const liveChatInput = document.getElementById("liveChatInput");
+    const liveChatSendBtn = document.getElementById("liveChatSendBtn");
+    const chatNameInput = document.getElementById("chatNameInput");
+    const msgCountEl = document.getElementById("msgCount");
+    const chatStatusEl = document.getElementById("chatStatus");
+
+
+    let messageSubscription = null;
+    let liveChatInitialized = false;
+    let pendingMessages = [];
+    let loadedMessageIds = new Set();
+
+
+    // ─── Escape HTML ───
+    function escapeHTML(value) {
+        const div = document.createElement("div");
+        div.textContent = value ?? "";
+        return div.innerHTML;
+    }
+
+
+    // ─── Add message to chat UI ───
+    function addChatMessage(username, message, isLocal, id = null) {
+
+        // Prevent duplicate messages
+        if (id !== null) {
+            if (loadedMessageIds.has(id)) return;
+            loadedMessageIds.add(id);
+        }
+
+        const type = isLocal ? "local" : "remote";
+        const prefix = isLocal ? "❯" : "⏣";
+
+        const div = document.createElement("div");
+        div.className = `msg ${type}`;
+
+        div.innerHTML =
+            `<span class="prefix">${prefix}</span>
+             <span style="color:#888;">${escapeHTML(username)}:</span>
+             ${escapeHTML(message)}`;
+
+        liveChatBox.appendChild(div);
+        liveChatBox.scrollTop = liveChatBox.scrollHeight;
+
+        if (!isLocal && typeof sound !== "undefined") {
+            sound.play("vault-response", 0.3);
+        }
+    }
+
+
+    // ─── Get current chat name ───
+    function getChatName() {
+        const username = chatNameInput.value.trim();
+        return username || "anon";
+    }
+
+
+    // ─── Load old messages ───
+    async function loadMessages() {
+
+        try {
+
+            chatStatusEl.textContent = "● connecting...";
+
+            const { data, error } = await supabase
+                .from("messages")
+                .select("*")
+                .order("created_at", { ascending: true })
+                .limit(100);
+
+            if (error) throw error;
+
+            // Keep system messages only
+            const systemMessages =
+                Array.from(
+                    liveChatBox.querySelectorAll(".msg.system")
+                );
+
+            liveChatBox.innerHTML = "";
+
+            systemMessages.forEach(el => {
+                liveChatBox.appendChild(el);
+            });
+
+            loadedMessageIds.clear();
+
+            data.forEach(msg => {
+
+                addChatMessage(
+                    msg.username,
+                    msg.message,
+                    msg.username === getChatName(),
+                    msg.id
+                );
+
+            });
+
+            msgCountEl.textContent = data.length;
+
+            chatStatusEl.textContent = "● connected";
+
+            liveChatInitialized = true;
+
+            if (typeof sound !== "undefined") {
+                sound.play("auth-accept", 0.3);
+            }
+
+        } catch (e) {
+
+            console.error("Load error:", e);
+
+            chatStatusEl.textContent = "● error";
+
+            liveChatBox.innerHTML +=
+                `<div class="msg error">
+                    <span class="prefix">✗</span>
+                    load error: ${escapeHTML(e.message)}
+                </div>`;
+
+            if (typeof sound !== "undefined") {
+                sound.play("error", 0.5);
             }
         }
+    }
 
-        // ─── Get current chat name ───
-        function getChatName() {
-            let name = chatNameInput.value.trim();
-            if (!name) name = 'anon';
-            return name;
-        }
 
-        // ─── Load messages ───
-        async function loadMessages() {
-            if (!supabase) return;
-            try {
-                const { data, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .order('created_at', { ascending: true })
-                    .limit(100);
+    // ─── Subscribe to real-time messages ───
+    function subscribeToMessages() {
 
-                if (error) {
-                    if (error.message && (error.message.includes('relation') || error.message.includes('does not exist'))) {
-                        liveChatBox.innerHTML +=
-                            `<div class="msg error"><span class="prefix">✗</span> Table 'messages' not found. Please create it in Supabase.</div>`;
-                        sound.play('error', 0.5);
-                        return;
-                    }
-                    throw error;
+        if (messageSubscription) return;
+
+        messageSubscription = supabase
+            .channel("messages_channel")
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages"
+                },
+
+                (payload) => {
+
+                    const msg = payload.new;
+
+                    const isLocal =
+                        msg.username === getChatName();
+
+                    addChatMessage(
+                        msg.username,
+                        msg.message,
+                        isLocal,
+                        msg.id
+                    );
+
+                    msgCountEl.textContent =
+                        loadedMessageIds.size;
+
+                }
+            )
+
+            .subscribe((status) => {
+
+                console.log("Realtime status:", status);
+
+                if (status === "SUBSCRIBED") {
+                    chatStatusEl.textContent = "● connected";
                 }
 
-                // Clear existing messages (keep system message)
-                const systemMsgs = liveChatBox.querySelectorAll('.msg.system');
-                liveChatBox.innerHTML = '';
-                systemMsgs.forEach(el => liveChatBox.appendChild(el));
+            });
+    }
 
-                data.forEach(msg => {
-                    addChatMessage(msg.name, msg.text, false);
+
+    // ─── Send message ───
+    async function sendLiveMessage(text = null) {
+
+        // Get text from input if not supplied
+        if (text === null) {
+            text = liveChatInput.value.trim();
+        }
+
+        text = text.trim();
+
+        if (!text) return;
+
+        const username = getChatName();
+
+        // Clear input immediately
+        liveChatInput.value = "";
+
+        try {
+
+            if (typeof sound !== "undefined") {
+                sound.play("vault-send", 0.3);
+            }
+
+            const { error } = await supabase
+                .from("messages")
+                .insert({
+                    username: username,
+                    message: text
                 });
-                msgCountEl.textContent = data.length;
-                chatStatusEl.textContent = '● connected';
-                sound.play('auth-accept', 0.3);
-                liveChatInitialized = true;
-            } catch (e) {
-                liveChatBox.innerHTML +=
-                    `<div class="msg error"><span class="prefix">✗</span> load error: ${e.message}</div>`;
-                sound.play('error', 0.5);
+
+            if (error) throw error;
+
+            // Don't manually add the message.
+            // Supabase realtime will receive it and add it.
+
+        } catch (e) {
+
+            console.error("Send error:", e);
+
+            liveChatBox.innerHTML +=
+                `<div class="msg error">
+                    <span class="prefix">✗</span>
+                    send error: ${escapeHTML(e.message)}
+                </div>`;
+
+            if (typeof sound !== "undefined") {
+                sound.play("error", 0.5);
             }
         }
+    }
 
-        // ─── Subscribe to new messages ───
-        function subscribeToMessages() {
-            if (messageSubscription) return;
-            if (!supabase) {
-                console.warn('Supabase not initialized, cannot subscribe');
-                return;
-            }
-            messageSubscription = supabase
-                .channel('messages_channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
-                    (payload) => {
-                        const msg = payload.new;
-                        const isLocal = (msg.name === getChatName());
-                        addChatMessage(msg.name, msg.text, isLocal);
-                        // Update count
-                        const count = parseInt(msgCountEl.textContent) + 1;
-                        msgCountEl.textContent = count;
-                    }
-                )
-                .subscribe();
+
+    // ─── Send button ───
+    liveChatSendBtn.addEventListener("click", () => {
+
+        if (typeof sound !== "undefined") {
+            sound.play("click", 0.3);
         }
 
-        // ─── Send message ───
-        async function sendLiveMessage(text) {
-            if (!text) {
-                text = liveChatInput.value.trim();
-                if (!text) return;
-                liveChatInput.value = '';
-            }
-            const name = getChatName();
-            if (!name) {
-                chatNameInput.focus();
-                return;
-            }
-            sound.play('vault-send', 0.3);
+        sendLiveMessage();
 
-            try {
-                if (!supabase) {
-                    // Queue message
-                    pendingMessages.push(text);
-                    return;
-                }
-                const { error } = await supabase
-                    .from('messages')
-                    .insert([{ username: name, text: message, created_at: new Date().toISOString() }]);
-                if (error) throw error;
-                // Subscription will add it
-            } catch (e) {
-                liveChatBox.innerHTML +=
-                    `<div class="msg error"><span class="prefix">✗</span> send error: ${e.message}</div>`;
-                sound.play('error', 0.5);
-            }
-        }
+    });
 
-        // ─── Event listeners for live chat ───
-        liveChatSendBtn.addEventListener('click', () => {
-            sound.play('click', 0.3);
-            if (!liveChatInitialized) {
-                // Try loading messages again
-                loadMessages().then(() => {
-                    subscribeToMessages();
-                    // Process pending messages
-                    if (pendingMessages.length) {
-                        const msgs = pendingMessages.slice();
-                        pendingMessages = [];
-                        for (const m of msgs) {
-                            sendLiveMessage(m);
-                        }
-                    }
-                });
-                return;
+
+    // ─── Enter to send ───
+    liveChatInput.addEventListener("keydown", (e) => {
+
+        if (e.key === "Enter") {
+
+            e.preventDefault();
+
+            if (typeof sound !== "undefined") {
+                sound.play("click", 0.3);
             }
+
             sendLiveMessage();
-        });
-        liveChatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sound.play('click', 0.3);
-                if (!liveChatInitialized) {
-                    loadMessages().then(() => {
-                        subscribeToMessages();
-                        if (pendingMessages.length) {
-                            const msgs = pendingMessages.slice();
-                            pendingMessages = [];
-                            for (const m of msgs) {
-                                sendLiveMessage(m);
-                            }
-                        }
-                    });
-                    return;
-                }
-                sendLiveMessage();
-            } else if (e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
-                const sounds = ['keypress', 'keypress2', 'keypress3'];
-                const idx = Math.floor(Math.random() * sounds.length);
+
+        } else if (
+            e.key !== "Backspace" &&
+            !e.ctrlKey &&
+            !e.metaKey
+        ) {
+
+            if (typeof sound !== "undefined") {
+
+                const sounds = [
+                    "keypress",
+                    "keypress2",
+                    "keypress3"
+                ];
+
+                const idx =
+                    Math.floor(Math.random() * sounds.length);
+
                 sound.play(sounds[idx], 0.15);
             }
-        });
+        }
 
-        // ─── Name input keypress sound ───
-        chatNameInput.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter' && e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
-                const sounds = ['keypress', 'keypress2', 'keypress3'];
-                const idx = Math.floor(Math.random() * sounds.length);
+    });
+
+
+    // ─── Name input sounds ───
+    chatNameInput.addEventListener("keydown", (e) => {
+
+        if (
+            e.key !== "Enter" &&
+            e.key !== "Backspace" &&
+            !e.ctrlKey &&
+            !e.metaKey
+        ) {
+
+            if (typeof sound !== "undefined") {
+
+                const sounds = [
+                    "keypress",
+                    "keypress2",
+                    "keypress3"
+                ];
+
+                const idx =
+                    Math.floor(Math.random() * sounds.length);
+
                 sound.play(sounds[idx], 0.15);
             }
-        });
+        }
 
-        // ─── Load chat name from localStorage ───
-        const savedName = localStorage.getItem('chatName');
-        if (savedName) chatNameInput.value = savedName;
-        chatNameInput.addEventListener('change', () => {
-            localStorage.setItem('chatName', chatNameInput.value.trim() || 'anon');
-        });
+    });
 
-        // ─── Auto-init when live chat tab becomes active ───
-        // We'll attach an event listener to the tab click for live chat
-        document.querySelector('.nav-tab[data-view="liveChatView"]').addEventListener('click', function() {
+
+    // ─── Save chat name ───
+    const savedName = localStorage.getItem("chatName");
+
+    if (savedName) {
+        chatNameInput.value = savedName;
+    }
+
+    chatNameInput.addEventListener("change", () => {
+
+        localStorage.setItem(
+            "chatName",
+            chatNameInput.value.trim() || "anon"
+        );
+
+    });
+
+
+    // ─── Initialize when Live Chat tab opens ───
+    const liveChatTab =
+        document.querySelector(
+            '.nav-tab[data-view="liveChatView"]'
+        );
+
+    if (liveChatTab) {
+
+        liveChatTab.addEventListener("click", () => {
+
             if (!liveChatInitialized) {
-                // Use a small delay to allow DOM to render
-                setTimeout(() => {
-                    loadMessages().then(() => {
+
+                setTimeout(async () => {
+
+                    await loadMessages();
+
+                    if (liveChatInitialized) {
                         subscribeToMessages();
-                    });
+                    }
+
                 }, 100);
+
             }
+
         });
 
-        // ─── Also try loading immediately if live chat is the default? Not, but we can check on load.
-        // ─── But we'll also expose functions globally for AI chat to use if needed.
-        window.sendLiveMessage = sendLiveMessage;
-        window.loadMessages = loadMessages;
-        window.addChatMessage = addChatMessage;
+    }
 
-        console.log("Live chat module loaded.");
+
+    // ─── Expose functions ───
+    window.sendLiveMessage = sendLiveMessage;
+    window.loadMessages = loadMessages;
+    window.addChatMessage = addChatMessage;
+
+
+    console.log("Live chat module loaded.");
+</script>
     </script>
 
 </body>
