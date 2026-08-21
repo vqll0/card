@@ -328,7 +328,7 @@
             border-radius: 3px;
             padding: 8px 10px;
             min-height: 200px;
-            max-height: 280px;
+            max-height: 260px;
             overflow-y: auto;
             margin-bottom: 8px;
         }
@@ -411,8 +411,9 @@
             border-top: 1px solid #1a1a1a;
             padding-top: 8px;
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
-        .input-area input {
+        .input-area input[type="text"] {
             flex: 1;
             background: #050708;
             border: 1px solid #1a1a1a;
@@ -424,14 +425,14 @@
             outline: none;
             min-width: 0;
         }
-        .input-area input:focus {
+        .input-area input[type="text"]:focus {
             border-color: #00ff00;
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.04);
         }
-        .input-area input::placeholder {
+        .input-area input[type="text"]::placeholder {
             color: #333;
         }
-        .input-area input:disabled {
+        .input-area input[type="text"]:disabled {
             opacity: 0.3;
         }
         .input-area button {
@@ -455,6 +456,10 @@
         .input-area button:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+        }
+        .input-area .name-input {
+            flex: 0 0 120px;
+            min-width: 80px;
         }
 
         .ai-footer {
@@ -481,7 +486,7 @@
         /* ─── LIVE CHAT VIEW ─── */
         #liveChatView .chat-box {
             min-height: 220px;
-            max-height: 300px;
+            max-height: 280px;
         }
         .chat-box .msg.remote {
             color: #d4b8ff;
@@ -535,13 +540,17 @@
             .chat-box .msg {
                 font-size: 11.5px;
             }
-            .input-area input {
+            .input-area input[type="text"] {
                 font-size: 11.5px;
                 padding: 5px 8px;
             }
             .input-area button {
                 font-size: 11px;
                 padding: 5px 10px;
+            }
+            .input-area .name-input {
+                flex: 0 0 100px;
+                min-width: 60px;
             }
             .nav-tabs {
                 gap: 2px;
@@ -572,6 +581,10 @@
             }
             .project .p-desc {
                 font-size: 11px;
+            }
+            .input-area .name-input {
+                flex: 0 0 80px;
+                min-width: 50px;
             }
         }
 
@@ -784,7 +797,7 @@
         <div class="view" id="liveChatView">
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a1a;padding-bottom:6px;margin-bottom:8px;">
                 <span style="color:#00ff00;font-size:14px;font-weight:700;letter-spacing:1px;">💬 live chat</span>
-                <span style="font-size:10px;color:#555;" id="chatStatus">● connected</span>
+                <span style="font-size:10px;color:#555;" id="chatStatus">● connecting...</span>
             </div>
 
             <div class="chat-box" id="liveChatBox">
@@ -795,12 +808,13 @@
             </div>
 
             <div class="input-area">
+                <input type="text" class="name-input" id="chatNameInput" placeholder="your name" maxlength="20" />
                 <input type="text" id="liveChatInput" placeholder="type a message..." />
                 <button id="liveChatSendBtn">➤ send</button>
             </div>
 
             <div style="margin-top:6px;border-top:1px solid #1a1a1a;padding-top:6px;font-size:9px;color:#444;display:flex;justify-content:space-between;">
-                <span>🔒 messages are public • <span id="userCount">0</span> online</span>
+                <span>🔒 messages are public • <span id="msgCount">0</span> messages</span>
                 <span>press <span class="hl" style="color:#00ff00;">enter</span> to send</span>
             </div>
         </div>
@@ -903,6 +917,8 @@
                 } else if (tab.dataset.view === 'liveChatView') {
                     setTimeout(() => document.getElementById('liveChatInput').focus(), 100);
                     sound.play('unlock', 0.3);
+                    // init supabase if not already
+                    if (typeof supabase === 'undefined') initSupabase();
                 } else {
                     sound.play('lock', 0.2);
                 }
@@ -913,170 +929,175 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
 
         // ════════════════════════════════════════════════════════════
-        //  LIVE CHAT (Firebase Realtime Database)
+        //  LIVE CHAT (Supabase)
         // ════════════════════════════════════════════════════════════
 
-        // ─── Firebase Config (REPLACE WITH YOUR OWN) ───
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        // ─── Supabase Config ───
+        // Replace with your actual Supabase URL
+        const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'; // <-- CHANGE THIS
+        const SUPABASE_ANON_KEY = 'sb_publishable_rV8EhkTQTMZy0vvDhJdb3w_Tittpwmk';
 
-        // ─── Firebase initialization ───
-        let firebaseApp, database, auth;
-        let chatInitialized = false;
-        let messageListener = null;
-        let presenceRef = null;
-        let userRef = null;
-        let userName = 'anon';
+        let supabase = null;
+        let liveChatInitialized = false;
+        let messageSubscription = null;
 
-        // We'll load Firebase SDKs dynamically
-        function loadFirebase() {
+        // ─── DOM refs for live chat ───
+        const liveChatBox = document.getElementById('liveChatBox');
+        const liveChatInput = document.getElementById('liveChatInput');
+        const liveChatSendBtn = document.getElementById('liveChatSendBtn');
+        const chatNameInput = document.getElementById('chatNameInput');
+        const msgCountEl = document.getElementById('msgCount');
+        const chatStatusEl = document.getElementById('chatStatus');
+
+        // ─── Load Supabase JS ───
+        function loadSupabase() {
             return new Promise((resolve, reject) => {
-                if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+                if (typeof supabase !== 'undefined') {
                     resolve();
                     return;
                 }
-                // Load Firebase App and Database
-                const script1 = document.createElement('script');
-                script1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-                script1.onload = () => {
-                    const script2 = document.createElement('script');
-                    script2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-                    script2.onload = () => {
-                        // Also load auth for anonymous
-                        const script3 = document.createElement('script');
-                        script3.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js';
-                        script3.onload = () => {
-                            resolve();
-                        };
-                        script3.onerror = reject;
-                        document.head.appendChild(script3);
-                    };
-                    script2.onerror = reject;
-                    document.head.appendChild(script2);
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                script.onload = () => {
+                    resolve();
                 };
-                script1.onerror = reject;
-                document.head.appendChild(script1);
+                script.onerror = reject;
+                document.head.appendChild(script);
             });
         }
 
-        function initFirebase() {
-            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-                document.getElementById('liveChatBox').innerHTML +=
-                    `<div class="msg system"><span class="prefix">ⓘ</span> ⚠️ Firebase not configured. Please set your config.</div>`;
-                return;
-            }
+        // ─── Initialize Supabase ───
+        async function initSupabase() {
+            if (liveChatInitialized) return;
             try {
-                firebaseApp = firebase.initializeApp(firebaseConfig);
-                database = firebase.database();
-                auth = firebase.auth();
-
-                // Anonymous auth
-                auth.signInAnonymously().then(() => {
-                    chatInitialized = true;
-                    document.getElementById('chatStatus').textContent = '● connected';
-                    startListening();
-                    setupPresence();
-                }).catch(err => {
-                    document.getElementById('liveChatBox').innerHTML +=
-                        `<div class="msg error"><span class="prefix">✗</span> auth error: ${err.message}</div>`;
+                await loadSupabase();
+                // Check if URL is placeholder
+                if (SUPABASE_URL === 'https://YOUR_PROJECT.supabase.co') {
+                    chatStatusEl.textContent = '⚠️ set Supabase URL';
+                    liveChatBox.innerHTML +=
+                        `<div class="msg error"><span class="prefix">✗</span> Please set your SUPABASE_URL in the script.</div>`;
                     sound.play('error', 0.5);
-                });
+                    return;
+                }
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                liveChatInitialized = true;
+                chatStatusEl.textContent = '● connected';
+                sound.play('auth-accept', 0.3);
+                // Load existing messages
+                await loadMessages();
+                // Subscribe to new messages
+                subscribeToMessages();
             } catch (e) {
-                document.getElementById('liveChatBox').innerHTML +=
+                chatStatusEl.textContent = '● error';
+                liveChatBox.innerHTML +=
                     `<div class="msg error"><span class="prefix">✗</span> init error: ${e.message}</div>`;
                 sound.play('error', 0.5);
             }
         }
 
-        // ─── Live chat DOM refs ───
-        const liveChatBox = document.getElementById('liveChatBox');
-        const liveChatInput = document.getElementById('liveChatInput');
-        const liveChatSendBtn = document.getElementById('liveChatSendBtn');
-        const userCountEl = document.getElementById('userCount');
+        // ─── Load messages ───
+        async function loadMessages() {
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true })
+                    .limit(100);
+
+                if (error) throw error;
+                // Clear existing messages (keep system message)
+                const systemMsgs = liveChatBox.querySelectorAll('.msg.system');
+                liveChatBox.innerHTML = '';
+                systemMsgs.forEach(el => liveChatBox.appendChild(el));
+
+                data.forEach(msg => {
+                    addChatMessage(msg.name, msg.text, false);
+                });
+                msgCountEl.textContent = data.length;
+            } catch (e) {
+                liveChatBox.innerHTML +=
+                    `<div class="msg error"><span class="prefix">✗</span> load error: ${e.message}</div>`;
+                sound.play('error', 0.5);
+            }
+        }
+
+        // ─── Subscribe to new messages ───
+        function subscribeToMessages() {
+            if (messageSubscription) return;
+            messageSubscription = supabase
+                .channel('messages_channel')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
+                    (payload) => {
+                        const msg = payload.new;
+                        const isLocal = (msg.name === getChatName());
+                        addChatMessage(msg.name, msg.text, isLocal);
+                        // Update count
+                        const count = parseInt(msgCountEl.textContent) + 1;
+                        msgCountEl.textContent = count;
+                    }
+                )
+                .subscribe();
+        }
+
+        // ─── Add message to chat UI ───
+        function addChatMessage(name, text, isLocal) {
+            const type = isLocal ? 'local' : 'remote';
+            const prefix = isLocal ? '❯' : '⏣';
+            const div = document.createElement('div');
+            div.className = `msg ${type}`;
+            div.innerHTML = `<span class="prefix">${prefix}</span> <span style="color:#888;">${name}:</span> ${text}`;
+            liveChatBox.appendChild(div);
+            liveChatBox.scrollTop = liveChatBox.scrollHeight;
+            if (!isLocal) {
+                sound.play('vault-response', 0.3);
+            }
+        }
+
+        // ─── Get current chat name ───
+        function getChatName() {
+            let name = chatNameInput.value.trim();
+            if (!name) name = 'anon';
+            return name;
+        }
 
         // ─── Send message ───
-        function sendLiveMessage() {
+        async function sendLiveMessage() {
             const text = liveChatInput.value.trim();
-            if (!text || !chatInitialized) return;
+            if (!text) return;
+            const name = getChatName();
+            if (!name) {
+                chatNameInput.focus();
+                return;
+            }
             liveChatInput.value = '';
             sound.play('vault-send', 0.3);
 
-            const msgRef = database.ref('messages').push();
-            msgRef.set({
-                user: userName || 'anon',
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).catch(err => {
+            try {
+                const { error } = await supabase
+                    .from('messages')
+                    .insert([{ name: name, text: text, created_at: new Date().toISOString() }]);
+                if (error) throw error;
+                // Optimistically add to UI? But subscription will add it.
+                // We'll just let subscription handle it.
+            } catch (e) {
                 liveChatBox.innerHTML +=
-                    `<div class="msg error"><span class="prefix">✗</span> send error: ${err.message}</div>`;
+                    `<div class="msg error"><span class="prefix">✗</span> send error: ${e.message}</div>`;
                 sound.play('error', 0.5);
-            });
-        }
-
-        // ─── Start listening for messages ───
-        function startListening() {
-            if (messageListener) return;
-            const messagesRef = database.ref('messages').limitToLast(50);
-            messageListener = messagesRef.on('child_added', (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-                const { user, text } = data;
-                const isLocal = (user === userName);
-                const type = isLocal ? 'local' : 'remote';
-                const prefix = isLocal ? '❯' : '⏣';
-                const div = document.createElement('div');
-                div.className = `msg ${type}`;
-                div.innerHTML = `<span class="prefix">${prefix}</span> <span style="color:#888;">${user}:</span> ${text}`;
-                liveChatBox.appendChild(div);
-                liveChatBox.scrollTop = liveChatBox.scrollHeight;
-                if (!isLocal) {
-                    sound.play('vault-response', 0.3);
-                }
-                // update user count (we'll track presence separately)
-            });
-        }
-
-        // ─── Presence tracking (simple online count) ───
-        function setupPresence() {
-            const userRef = database.ref('presence/' + auth.currentUser.uid);
-            userRef.onDisconnect().remove();
-
-            // Set online
-            userRef.set({
-                online: true,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // Listen for online count
-            const presenceRef = database.ref('presence');
-            presenceRef.on('value', (snap) => {
-                const data = snap.val();
-                let count = 0;
-                if (data) {
-                    for (const key in data) {
-                        if (data[key].online === true) count++;
-                    }
-                }
-                userCountEl.textContent = count;
-            });
+            }
         }
 
         // ─── Live chat event listeners ───
         liveChatSendBtn.addEventListener('click', () => {
             sound.play('click', 0.3);
+            if (!liveChatInitialized) initSupabase();
             sendLiveMessage();
         });
         liveChatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 sound.play('click', 0.3);
+                if (!liveChatInitialized) initSupabase();
                 sendLiveMessage();
             } else if (e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
                 const sounds = ['keypress', 'keypress2', 'keypress3'];
@@ -1085,33 +1106,24 @@
             }
         });
 
-        // ─── Init Firebase when live chat tab is shown ───
-        // We'll initialize on first click of the live chat tab
-        let firebaseLoaded = false;
-
-        function initChatOnDemand() {
-            if (firebaseLoaded) return;
-            firebaseLoaded = true;
-            loadFirebase().then(() => {
-                initFirebase();
-            }).catch(err => {
-                liveChatBox.innerHTML +=
-                    `<div class="msg error"><span class="prefix">✗</span> failed to load Firebase: ${err.message}</div>`;
-                sound.play('error', 0.5);
-            });
-        }
-
-        // Override tab click to init chat
-        const originalTabClick = document.querySelector('.nav-tab[data-view="liveChatView"]').click;
-        document.querySelector('.nav-tab[data-view="liveChatView"]').addEventListener('click', function(e) {
-            if (!firebaseLoaded) {
-                initChatOnDemand();
+        // ─── Name input keypress sound ───
+        chatNameInput.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== 'Backspace' && !e.ctrlKey && !e.metaKey) {
+                const sounds = ['keypress', 'keypress2', 'keypress3'];
+                const idx = Math.floor(Math.random() * sounds.length);
+                sound.play(sounds[idx], 0.15);
             }
         });
 
-        // Also if user directly navigates via URL, we might need to init, but we'll keep it simple.
+        // ─── Load chat name from localStorage ───
+        const savedName = localStorage.getItem('chatName');
+        if (savedName) chatNameInput.value = savedName;
+        chatNameInput.addEventListener('change', () => {
+            localStorage.setItem('chatName', chatNameInput.value.trim() || 'anon');
+        });
 
-        // ─── Also handle page load if live chat is default? not, but we can check later.
+        // ─── Initialize Supabase when live chat tab is clicked ───
+        // We already call initSupabase in the tab click handler.
 
         // ════════════════════════════════════════════════════════════
         //  AI CHAT (same as before, but integrated)
